@@ -107,6 +107,10 @@ int main(void)
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
+  HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
+  HAL_UART_Transmit(&huart1, "\r\nHeceta Relay Module v0.0.3\r\n", 30, 1000);
+  HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
