@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "LED.h"
 #include "Relay.h"
+#include "Command.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -108,7 +109,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-  HAL_UART_Transmit(&huart1, "\r\nHeceta Relay Module v0.0.3\r\n", 30, 1000);
+  HAL_UART_Transmit(&huart1, (uint8_t*)"\r\nHeceta Relay Module v0.0.3\r\n> ", 32, 1000);
   HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
 
   /* USER CODE END 2 */
@@ -123,6 +124,7 @@ int main(void)
 
 	  Relay_Process();
 	  LED_Process();
+	  Command_Process();
 
   }
   /* USER CODE END 3 */
@@ -473,7 +475,10 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+UART_HandleTypeDef* Main_Get_UART_Handle(void)
+{
+	return &huart1;
+}
 /* USER CODE END 4 */
 
 /**
