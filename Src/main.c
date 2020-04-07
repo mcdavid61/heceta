@@ -26,6 +26,9 @@
 #include "LED.h"
 #include "Relay.h"
 #include "Command.h"
+#include "Version.h"
+#include "UUID.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -65,7 +68,8 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
-
+/* Private function prototypes -----------------------------------------------*/
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -108,9 +112,17 @@ int main(void)
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-  HAL_UART_Transmit(&huart1, (uint8_t*)"\r\nHeceta Relay Module v0.0.3\r\n> ", 32, 1000);
-  HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
+	HAL_UART_Transmit(&huart1, (uint8_t*)"\r\nHeceta Relay Module v0.0.3\r\n", 30, 100);
+	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+
+	uint32_t idPart1 = STM32_UUID[0];
+  uint32_t idPart2 = STM32_UUID[1];
+  uint32_t idPart3 = STM32_UUID[2];
+  uint32_t UID;
+
+  UID = HAL_CRC_Calculate(&hcrc, STM32_UUID, 3);
+  //printf("\r\nHeceta Relay Module v%d.%d.%d\r\n", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD);
 
   /* USER CODE END 2 */
 
@@ -273,7 +285,7 @@ static void MX_CRC_Init(void)
   hcrc.Init.DefaultInitValueUse = DEFAULT_INIT_VALUE_ENABLE;
   hcrc.Init.InputDataInversionMode = CRC_INPUTDATA_INVERSION_NONE;
   hcrc.Init.OutputDataInversionMode = CRC_OUTPUTDATA_INVERSION_DISABLE;
-  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_BYTES;
+  hcrc.InputDataFormat = CRC_INPUTDATA_FORMAT_WORDS;
   if (HAL_CRC_Init(&hcrc) != HAL_OK)
   {
     Error_Handler();

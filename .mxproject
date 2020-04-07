@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Projects/3015-6260 Heceta Relay Module/Inc
+HeaderPath=C:/Projects/3015-6260 Heceta Relay Module/3015-6260-heceta-relay-module/Inc
 HeaderFiles=stm32l4xx_it.h;stm32l4xx_hal_conf.h;main.h;
-SourcePath=C:/Projects/3015-6260 Heceta Relay Module/Src
+SourcePath=C:/Projects/3015-6260 Heceta Relay Module/3015-6260-heceta-relay-module/Src
 SourceFiles=stm32l4xx_it.c;stm32l4xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]
