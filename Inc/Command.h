@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- *  @file		Relay.h
+ *  @file		Command.h
  *
  *  @copyright	2020, Bacharach Inc. as an unpublished work
  *              All Rights Reserved.
@@ -11,18 +11,13 @@
  *  @date		Feb 13, 2020
  *  @author 	dmcmasters
  *
- *  @brief		
+ *  @brief
  *-------------------------------------------------------------------------------*/
-#ifndef _RELAY_H_
-#define _RELAY_H_
+#ifndef _COMMAND_H_
+#define _COMMAND_H_
 
-#include <stdint.h>
+void Command_Process(void);
 
-void Relay_Process(void);
-void Relay_Set_Relay(uint16_t relay);
-void Relay_Run_Demo();
-
-
-#endif /* _RELAY_H_ */
+#endif /* _COMMAND_H_ */
 
 /*************************** END OF FILE **************************************/

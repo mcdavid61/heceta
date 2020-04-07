@@ -54,6 +54,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
+UART_HandleTypeDef* Main_Get_UART_Handle(void);
 
 /* USER CODE END EFP */
 

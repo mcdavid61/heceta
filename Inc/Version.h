@@ -1,5 +1,5 @@
 /*-----------------------------------------------------------------------------
- *  @file		Relay.h
+ *  @file		Version.h
  *
  *  @copyright	2020, Bacharach Inc. as an unpublished work
  *              All Rights Reserved.
@@ -8,21 +8,22 @@
  *  The use, copying, transfer or disclosure of such information is prohibited
  *  except by express written agreement with Bacharach Inc.
  *
- *  @date		Feb 13, 2020
+ *  @date		Apr 6, 2020
  *  @author 	dmcmasters
  *
- *  @brief		
+ *  @brief
  *-------------------------------------------------------------------------------*/
-#ifndef _RELAY_H_
-#define _RELAY_H_
+#ifndef _VERSION_H_
+#define _VERSION_H_
 
-#include <stdint.h>
+/******************************************************************************
+ * Defines
+ */
+#define	SOFTWARE_VERSION_MAJOR	0
+#define	SOFTWARE_VERSION_MINOR	0
+#define	SOFTWARE_VERSION_BUILD	3
 
-void Relay_Process(void);
-void Relay_Set_Relay(uint16_t relay);
-void Relay_Run_Demo();
 
-
-#endif /* _RELAY_H_ */
+#endif /* _VERSION_H_ */
 
 /*************************** END OF FILE **************************************/
