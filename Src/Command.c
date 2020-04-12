@@ -25,9 +25,7 @@ void Command_Process(void)
 
 	if(HAL_TIMEOUT != HAL_UART_Receive(uart, &cmd, 1, 1))
 	{
-		HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-		HAL_UART_Transmit(uart, &cmd, 1, 1);
-		HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+		printf("%c", cmd);
 
 		switch(cmd)
 		{
@@ -66,19 +64,17 @@ void Command_Process(void)
 			Relay_Set_Relay(1 << (cmd - 'a' + 9));
 			break;
 		case '?':
-			HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-			HAL_UART_Transmit(uart, (uint8_t*)"\r\nNo Help!", 10, 10);
-			HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+			printf("\n\rNo help at this time!\n\r");
 			break;
 
 		default:
 			break;
 		}
 
-		HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-		HAL_UART_Transmit(uart, (uint8_t*)"\r\n> ", 4, 10);
-		HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+		printf("\n\r> ");
+
 	}
+
 }
 
 /*************************** END OF FILE **************************************/

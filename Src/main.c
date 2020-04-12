@@ -68,8 +68,13 @@ static void MX_USART1_UART_Init(void);
 static void MX_USART3_UART_Init(void);
 static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
-/* Private function prototypes -----------------------------------------------*/
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf
+   set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -112,9 +117,6 @@ int main(void)
   MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
-	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
-	HAL_UART_Transmit(&huart1, (uint8_t*)"\r\nHeceta Relay Module v0.0.3\r\n", 30, 100);
-	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
 
 	uint32_t idPart1 = STM32_UUID[0];
   uint32_t idPart2 = STM32_UUID[1];
@@ -122,7 +124,9 @@ int main(void)
   uint32_t UID;
 
   UID = HAL_CRC_Calculate(&hcrc, STM32_UUID, 3);
-  //printf("\r\nHeceta Relay Module v%d.%d.%d\r\n", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD);
+
+  printf("\n\rHeceta Relay Module v%d.%d.%d, 0x%08X\n\r> ", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD, UID);
+
 
   /* USER CODE END 2 */
 
@@ -366,7 +370,7 @@ static void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-
+  setvbuf(stdout, NULL, _IONBF, 0);
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -491,6 +495,23 @@ UART_HandleTypeDef* Main_Get_UART_Handle(void)
 {
 	return &huart1;
 }
+
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @param  None
+  * @retval None
+  */
+PUTCHAR_PROTOTYPE
+{
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the USART1 and Loop until the end of transmission */
+	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 1);
+	HAL_UART_Transmit(&huart1, (uint8_t *)&ch, 1, 0xFFFF);
+	HAL_GPIO_WritePin(RS485_DE_GPIO_Port, RS485_DE_Pin, 0);
+
+  return ch;
+}
+
 /* USER CODE END 4 */
 
 /**
