@@ -8,6 +8,8 @@
 #include "ADC.h"
 #include "main.h"
 
+#define ADC_TICK_INCREMENT 250
+
 
 /* Variable to report ADC sequencer status */
 uint8_t         ubSequenceCompleted = RESET;     /* Set when all ranks of the sequence have been converted */
@@ -24,49 +26,56 @@ void ADC_Process(void)
 {
 	ADC_HandleTypeDef* adc = Main_Get_ADC_Handle();
 
-	/* Start ADC conversion */
-   /* Since sequencer is enabled in discontinuous mode, this will perform    */
-   /* the conversion of the next rank in sequencer.                          */
-   /* Note: For this example, conversion is triggered by software start,     */
-   /*       therefore "HAL_ADC_Start()" must be called for each conversion.  */
-   /*       Since DMA transfer has been initiated previously by function     */
-   /*       "HAL_ADC_Start_DMA()", this function will keep DMA transfer      */
-   /*       active.                                                          */
-   if (HAL_ADC_Start(adc) != HAL_OK)
-   {
-     Error_Handler();
-   }
+	static	uint32_t	adcTick=0;
 
-   /* After each intermediate conversion,
-      - EOS remains reset (EOS is set only every third conversion)
-      - EOC is set then immediately reset by DMA reading of DR register.
-    Therefore, the only reliable flag to check the conversion end is EOSMP
-    (end of sampling flag).
-    Once EOSMP is set, the end of conversion will be reached when the successive
-    approximations are over.
-    RM indicates 12.5 ADC clock cycles for the successive approximations
-    duration with a 12-bit resolution, or 185.ns at 80 MHz.
-    Therefore, it is known that the conversion is over at
-    HAL_ADC_PollForConversion() API return */
-   if (HAL_ADC_PollForEvent(adc, ADC_EOSMP_EVENT, 10) != HAL_OK)
-   {
-     Error_Handler();
-   }
+	if (uwTick > adcTick)
+	{
+		adcTick = uwTick + ADC_TICK_INCREMENT;
 
-   if (ubSequenceCompleted == SET)
-   {
-		 /* Computation of ADC conversions raw data to physical values */
-		 /* Note: ADC results are transferred into array "aADCxConvertedValues"  */
-		 /*       in the order of their rank in ADC sequencer.                   */
-		 ADC_24V_Mon    	= (double)aADCxConvertedValues[0] * ADC_REF_VOLT / ADC_MAX_COUNTS * 10590 / 590;
-		 ADC_3V3_Mon    	= (double)aADCxConvertedValues[1] * ADC_REF_VOLT / ADC_MAX_COUNTS * 25000 / 15000;
-		 temporary = (double)aADCxConvertedValues[2] - (uint32_t)*TS30;
-		 temporary *= (110 - 30);
-		 temporary /= (double)(int32_t)((uint32_t)*TS110 - (uint32_t)*TS30);
-		 ADC_Temperature	= temporary + 30;
+		/* Start ADC conversion */
+		 /* Since sequencer is enabled in discontinuous mode, this will perform    */
+		 /* the conversion of the next rank in sequencer.                          */
+		 /* Note: For this example, conversion is triggered by software start,     */
+		 /*       therefore "HAL_ADC_Start()" must be called for each conversion.  */
+		 /*       Since DMA transfer has been initiated previously by function     */
+		 /*       "HAL_ADC_Start_DMA()", this function will keep DMA transfer      */
+		 /*       active.                                                          */
+		 if (HAL_ADC_Start(adc) != HAL_OK)
+		 {
+			 Error_Handler();
+		 }
 
-		 ubSequenceCompleted = RESET;
-   }
+		 /* After each intermediate conversion,
+				- EOS remains reset (EOS is set only every third conversion)
+				- EOC is set then immediately reset by DMA reading of DR register.
+			Therefore, the only reliable flag to check the conversion end is EOSMP
+			(end of sampling flag).
+			Once EOSMP is set, the end of conversion will be reached when the successive
+			approximations are over.
+			RM indicates 12.5 ADC clock cycles for the successive approximations
+			duration with a 12-bit resolution, or 185.ns at 80 MHz.
+			Therefore, it is known that the conversion is over at
+			HAL_ADC_PollForConversion() API return */
+		 if (HAL_ADC_PollForEvent(adc, ADC_EOSMP_EVENT, 10) != HAL_OK)
+		 {
+			 Error_Handler();
+		 }
+
+		 if (ubSequenceCompleted == SET)
+		 {
+			 /* Computation of ADC conversions raw data to physical values */
+			 /* Note: ADC results are transferred into array "aADCxConvertedValues"  */
+			 /*       in the order of their rank in ADC sequencer.                   */
+			 ADC_24V_Mon    	= (double)aADCxConvertedValues[0] * ADC_REF_VOLT / ADC_MAX_COUNTS * 10590 / 590;
+			 ADC_3V3_Mon    	= (double)aADCxConvertedValues[1] * ADC_REF_VOLT / ADC_MAX_COUNTS * 25000 / 15000;
+			 temporary = (((double)aADCxConvertedValues[2]) * 1.1) - (uint32_t)*TS30;
+			 temporary *= (double)(110 - 30);
+			 temporary /= (double)(int32_t)((uint32_t)*TS110 - (uint32_t)*TS30);
+			 ADC_Temperature	= temporary + 30;
+
+			 ubSequenceCompleted = RESET;
+		 }
+	}
 }
 
 

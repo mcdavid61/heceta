@@ -18,7 +18,7 @@
 #include "main.h"
 #include "DRV8860.h"
 
-#define RELAY_TICK_INCREMENT 250
+#define RELAY_TICK_INCREMENT 500
 
 uint16_t relayPattern = 1;
 _Bool	toggleFlag = TRUE;
