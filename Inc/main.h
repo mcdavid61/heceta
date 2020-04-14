@@ -57,6 +57,8 @@ void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
 UART_HandleTypeDef* Main_Get_UART_Handle(void);
+ADC_HandleTypeDef* Main_Get_ADC_Handle(void);
+
 
 /* USER CODE END EFP */
 
