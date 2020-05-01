@@ -31,17 +31,15 @@ void LED_Process(void)
 		switch (led)
 		{
 		case 0:
-			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-			led++;
-			break;
-		case 1:
 			HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin);
 			led++;
 			break;
-		case 2:
+
+		case 1:
 			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
 			led++;
 			break;
+
 		default:
 			led = 0;
 			break;
