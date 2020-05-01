@@ -23,15 +23,11 @@ extern uint16_t ADC_24V_Mon;
 extern uint16_t ADC_3V3_Mon;
 extern uint16_t ADC_Temperature;
 
-#define UP_ICON	'1'
-#define DN_ICON '0'
-
 void Command_Process(void)
 {
 	uint8_t cmd;
 	UART_HandleTypeDef* uart = Main_Get_UART_Handle();
-			char dn = DN_ICON;
-			char up = UP_ICON;
+
 
 	if(HAL_TIMEOUT != HAL_UART_Receive(uart, &cmd, 1, 1))
 	{
