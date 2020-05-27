@@ -19,18 +19,41 @@
 #include "Relay.h"
 #include "Switches.h"
 
+#define	COMM_TIMEOUT_LIMIT	5000
+
+bool	CommTimeout = FALSE;
+uint32_t commTimeoutCounter = 0;
+uint32_t commTimeoutTick = 0;
+
 extern uint16_t ADC_24V_Mon;
 extern uint16_t ADC_3V3_Mon;
 extern uint16_t ADC_Temperature;
+
+bool Command_Has_Comm_Timed_Out(void)
+{
+	return CommTimeout;
+}
 
 void Command_Process(void)
 {
 	uint8_t cmd;
 	UART_HandleTypeDef* uart = Main_Get_UART_Handle();
 
+	if (uwTick > commTimeoutTick)
+	{
+		// timed out, set flag, make sure we stay set until we get a character
+		CommTimeout = TRUE;
+		Relay_Set_CommRelay(TRUE);
+		commTimeoutTick = uwTick;
+	}
 
 	if(HAL_TIMEOUT != HAL_UART_Receive(uart, &cmd, 1, 1))
 	{
+		// got a character, reset comm timeout flag and counter
+		commTimeoutTick = uwTick + COMM_TIMEOUT_LIMIT;
+		CommTimeout = FALSE;
+		Relay_Set_CommRelay(FALSE);
+
 		printf("%c", cmd);
 
 		switch(cmd)
@@ -96,7 +119,7 @@ void Command_Process(void)
 			printf("V - Read voltages and temperature\n\r");
 			printf("[ - All off.\n\r");
 			printf("] - All on.\n\r");
-			printf("1-9, a-g - Individual Relay");
+			printf("1-9, a-g - Individual Relay\n\r");
 			printf("? - Help\n\r");
 			break;
 		}

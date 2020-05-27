@@ -22,6 +22,7 @@
 
 uint16_t relayPattern = 1;
 _Bool	toggleFlag = TRUE;
+_Bool commRelay = FALSE;
 
 
 void Relay_Process(void)
@@ -33,10 +34,18 @@ void Relay_Process(void)
 		if(uwTick > relayTick)
 		{
 			relayTick = uwTick + RELAY_TICK_INCREMENT;
+			if (TRUE == commRelay)
+			{
+				relayPattern |= 0x8000;
+			}
+			else
+			{
+				relayPattern &= 0x7FFF;
+			}
 
 			DRV8860_Update_Driver_Output(~relayPattern);
 			relayPattern <<= 1;
-			if (relayPattern == 0)
+			if (relayPattern == 0x8000)
 			{
 				relayPattern = 1;
 			}
@@ -60,5 +69,11 @@ void Relay_Set_Relay(uint16_t relay)
 {
 	relayPattern = relay;
 	toggleFlag = FALSE;
+}
+
+void Relay_Set_CommRelay(_Bool state)
+{
+	commRelay = state;
+	return;
 }
 /*************************** END OF FILE **************************************/

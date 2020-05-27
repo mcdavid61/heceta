@@ -16,7 +16,10 @@
 #ifndef _COMMAND_H_
 #define _COMMAND_H_
 
+#include <stdbool.h>
+
 void Command_Process(void);
+bool Command_Has_Comm_Timed_Out(void);
 
 #endif /* _COMMAND_H_ */
 

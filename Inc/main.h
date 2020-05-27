@@ -34,6 +34,8 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "defines.h"
 #include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 /* USER CODE END Includes */
 

@@ -17,33 +17,27 @@
 
 #include "LED.h"
 #include "main.h"
+#include "Command.h"
 
-#define LED_TICK_INCREMENT	100
+#define LED_TICK_INCREMENT	500
 
 void LED_Process(void)
 {
 	static uint32_t ledTick=0;
-	static uint8_t led = 0;
 
 	if (uwTick > ledTick)
 	{
 		ledTick = uwTick + LED_TICK_INCREMENT;
-		switch (led)
-		{
-		case 0:
-			HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin);
-			led++;
-			break;
+		HAL_GPIO_TogglePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin);
+	}
 
-		case 1:
-			HAL_GPIO_TogglePin(LED_RED_GPIO_Port, LED_RED_Pin);
-			led++;
-			break;
-
-		default:
-			led = 0;
-			break;
-		}
+	if (Command_Has_Comm_Timed_Out())
+	{
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
+	}
+	else
+	{
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 	}
 	return;
 }
