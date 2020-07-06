@@ -28,6 +28,7 @@ uint32_t commTimeoutTick = 0;
 extern uint16_t ADC_24V_Mon;
 extern uint16_t ADC_3V3_Mon;
 extern uint16_t ADC_Temperature;
+extern uint16_t ADC_VrefInt;
 
 bool Command_Has_Comm_Timed_Out(void)
 {
@@ -66,11 +67,11 @@ void Command_Process(void)
 		case 'v':
 		case 'V':
 			printf("\n\r");
-			printf("╔══════════╤══════════╤══════════╗\n\r");
-			printf("║    24V   │   3.3V   │  Temp.   ║\n\r");
-			printf("╟──────────┼──────────┼──────────╢\n\r");
-			printf("║ %5d mV │ %5d mV │  %3d °C  ║\n\r", ADC_24V_Mon, ADC_3V3_Mon, ADC_Temperature);
-			printf("╚══════════╧══════════╧══════════╝\n\r");
+			printf("╔══════════╤══════════╤══════════╤══════════╗\n\r");
+			printf("║    24V   │   3.3V   │ VrefInt  │  Temp.   ║\n\r");
+			printf("╟──────────┼──────────┼──────────┼──────────╢\n\r");
+			printf("║ %5d mV │ %5d mV │ %5d mV │  %3d °C  ║\n\r", ADC_24V_Mon, ADC_3V3_Mon, ADC_VrefInt, ADC_Temperature);
+			printf("╚══════════╧══════════╧══════════╧══════════╝\n\r");
 			break;
 
 		case 's':

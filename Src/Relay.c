@@ -11,7 +11,7 @@
  *  @date		Feb 13, 2020
  *  @author 	dmcmasters
  *
- *  @brief		
+ *  @brief
  *-------------------------------------------------------------------------------*/
 
 #include "Relay.h"
@@ -20,8 +20,8 @@
 
 #define RELAY_TICK_INCREMENT 500
 
-uint16_t relayPattern = 1;
-_Bool	toggleFlag = TRUE;
+uint16_t relayPattern = 0;
+_Bool	toggleFlag = FALSE;
 _Bool commRelay = FALSE;
 
 

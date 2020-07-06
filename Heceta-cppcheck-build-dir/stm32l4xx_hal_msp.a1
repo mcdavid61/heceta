@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<analyzerinfo checksum="4146824128">
+  <FileInfo check="Null pointer">
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:87:6" my-argnr="1" my-argname="hadc" file="Src/stm32l4xx_hal_msp.c" line="90" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:139:6" my-argnr="1" my-argname="hadc" file="Src/stm32l4xx_hal_msp.c" line="141" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:170:6" my-argnr="1" my-argname="hcrc" file="Src/stm32l4xx_hal_msp.c" line="172" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:192:6" my-argnr="1" my-argname="hcrc" file="Src/stm32l4xx_hal_msp.c" line="194" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:214:6" my-argnr="1" my-argname="hspi" file="Src/stm32l4xx_hal_msp.c" line="217" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:251:6" my-argnr="1" my-argname="hspi" file="Src/stm32l4xx_hal_msp.c" line="253" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:281:6" my-argnr="1" my-argname="huart" file="Src/stm32l4xx_hal_msp.c" line="284" col="6" value="0"/>
+    <unsafe-usage my-id="Src/stm32l4xx_hal_msp.c:341:6" my-argnr="1" my-argname="huart" file="Src/stm32l4xx_hal_msp.c" line="343" col="6" value="0"/>
+  </FileInfo>
+  <FileInfo check="CheckUnusedFunctions">
+    <functiondecl functionName="HAL_MspInit" lineNumber="65"/>
+    <functiondecl functionName="HAL_ADC_MspInit" lineNumber="87"/>
+    <functiondecl functionName="HAL_ADC_MspDeInit" lineNumber="139"/>
+    <functiondecl functionName="HAL_CRC_MspInit" lineNumber="170"/>
+    <functiondecl functionName="HAL_CRC_MspDeInit" lineNumber="192"/>
+    <functiondecl functionName="HAL_SPI_MspInit" lineNumber="214"/>
+    <functiondecl functionName="HAL_SPI_MspDeInit" lineNumber="251"/>
+    <functiondecl functionName="HAL_UART_MspInit" lineNumber="281"/>
+    <functiondecl functionName="HAL_UART_MspDeInit" lineNumber="341"/>
+    <functioncall functionName="DMA1_Channel1"/>
+    <functioncall functionName="DMA_CIRCULAR"/>
+    <functioncall functionName="DMA_Handle"/>
+    <functioncall functionName="DMA_MDATAALIGN_HALFWORD"/>
+    <functioncall functionName="DMA_MINC_ENABLE"/>
+    <functioncall functionName="DMA_PDATAALIGN_HALFWORD"/>
+    <functioncall functionName="DMA_PERIPH_TO_MEMORY"/>
+    <functioncall functionName="DMA_PINC_DISABLE"/>
+    <functioncall functionName="DMA_PRIORITY_LOW"/>
+    <functioncall functionName="DMA_REQUEST_0"/>
+    <functioncall functionName="Error_Handler"/>
+    <functioncall functionName="GPIOA"/>
+    <functioncall functionName="GPIOC"/>
+    <functioncall functionName="GPIO_AF5_SPI1"/>
+    <functioncall functionName="GPIO_AF7_USART1"/>
+    <functioncall functionName="GPIO_AF7_USART3"/>
+    <functioncall functionName="GPIO_InitStruct"/>
+    <functioncall functionName="GPIO_MODE_AF_PP"/>
+    <functioncall functionName="GPIO_MODE_ANALOG_ADC_CONTROL"/>
+    <functioncall functionName="GPIO_NOPULL"/>
+    <functioncall functionName="GPIO_PIN_1"/>
+    <functioncall functionName="GPIO_PIN_10"/>
+    <functioncall functionName="GPIO_PIN_5"/>
+    <functioncall functionName="GPIO_PIN_7"/>
+    <functioncall functionName="GPIO_SPEED_FREQ_VERY_HIGH"/>
+    <functioncall functionName="HAL_DMA_DeInit"/>
+    <functioncall functionName="HAL_DMA_Init"/>
+    <functioncall functionName="HAL_GPIO_DeInit"/>
+    <functioncall functionName="HAL_GPIO_Init"/>
+    <functioncall functionName="__HAL_LINKDMA"/>
+    <functioncall functionName="__HAL_RCC_ADC_CLK_DISABLE"/>
+    <functioncall functionName="__HAL_RCC_ADC_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_CRC_CLK_DISABLE"/>
+    <functioncall functionName="__HAL_RCC_CRC_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_GPIOA_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_GPIOC_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_PWR_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_SPI1_CLK_DISABLE"/>
+    <functioncall functionName="__HAL_RCC_SPI1_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_SYSCFG_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_USART1_CLK_DISABLE"/>
+    <functioncall functionName="__HAL_RCC_USART1_CLK_ENABLE"/>
+    <functioncall functionName="__HAL_RCC_USART3_CLK_DISABLE"/>
+    <functioncall functionName="__HAL_RCC_USART3_CLK_ENABLE"/>
+    <functioncall functionName="hadc"/>
+    <functioncall functionName="hdma_adc1"/>
+    <functioncall functionName="if"/>
+  </FileInfo>
+</analyzerinfo>

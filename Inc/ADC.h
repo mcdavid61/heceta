@@ -8,7 +8,7 @@
 #ifndef ADC_H_
 #define ADC_H_
 
-#define ADC_NUM_CHANNELS	3
+#define ADC_NUM_CHANNELS	4
 #define	ADC_REF_VOLT			3300
 #define	ADC_MAX_COUNTS		4095
 
