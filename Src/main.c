@@ -148,7 +148,8 @@ int main(void)
     Error_Handler();
   }
 
-  uint32_t UID = HAL_CRC_Calculate(&hcrc, STM32_UUID, 3);
+  uint32_t UID = UUID_Get_ID();
+
   printf("\n\rHeceta Relay Module v%d.%d.%d, 0x%08lX\n\r> ", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD, UID);
   Debug_Write(testString, sizeof(testString));
   sequenceIndex = 1;
@@ -596,6 +597,11 @@ UART_HandleTypeDef* Main_Get_UART_Handle(void)
 ADC_HandleTypeDef* Main_Get_ADC_Handle(void)
 {
 	return &hadc1;
+}
+
+CRC_HandleTypeDef* Main_Get_CRC_Handle(void)
+{
+	return &hcrc;
 }
 
 /**
