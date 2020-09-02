@@ -17,43 +17,51 @@
 //
 typedef struct
 {
-    uint8_t * pBuffer;       //Pointer to start of buffer
-    uint32_t nBufferLength;  //Number of bytes pointed to by pBuffer
-    volatile uint32_t nHead; //Index/offset of the location to insert the next byte
-    volatile uint32_t nTail; //Index/offset of the location to remove the next byte
-} ByteFIFOControl_T;
+    void * pBuffer;       	 //	Pointer to start of buffer
+    uint32_t nBufferLength;  //	Number of bytes pointed to by pBuffer
+    volatile uint32_t nHead; //	Index/offset of the location to insert the next byte
+    volatile uint32_t nTail; //	Index/offset of the location to remove the next byte
+    uint32_t nSize;			 //	Size of each element within the void pointer.
+} FIFOControl_T;
 
 //
 // Macros for easy definition
 //
 //-A potentially global fifo
-#define DEFINE_BYTE_FIFO(name, length) \
-    static uint8_t name##sBuffer[length]; \
-    ByteFIFOControl_T name = \
+#define DEFINE_FIFO(name, type, length) \
+    static type name##sBuffer[length]; \
+    FIFOControl_T name = \
     { \
         name##sBuffer, \
         length, \
         0, \
-        0 \
+		0, \
+		sizeof(type), \
     };
+
 //-A local fifo
-#define DEFINE_STATIC_BYTE_FIFO(name, length) \
-    static uint8_t name##sBuffer[length]; \
-    static ByteFIFOControl_T name = \
+#define DEFINE_STATIC_FIFO(name, type, length) \
+    static type name##sBuffer[length]; \
+    static FIFOControl_T name = \
     { \
         name##sBuffer, \
         length, \
         0, \
-        0 \
+        0, \
+		sizeof(type), \
     };
 
 //
 // Access functions
 //
-uint32_t ByteFIFO_GetBytesQueued(const ByteFIFOControl_T * pFifo);
-uint32_t ByteFIFO_GetBytesFree(const ByteFIFOControl_T * pFifo);
-bool ByteFIFO_GetEmptyState(const ByteFIFOControl_T * pFifo);
-bool ByteFIFO_Enqueue(ByteFIFOControl_T * pFifo, uint8_t nChar);
-int32_t ByteFIFO_Dequeue(ByteFIFOControl_T * pFifo);
+uint32_t FIFO_GetQueued(const FIFOControl_T * pFifo);
+uint32_t FIFO_GetFree(const FIFOControl_T * pFifo);
+bool FIFO_GetEmptyState(const FIFOControl_T * pFifo);
+bool FIFO_Enqueue(FIFOControl_T * pFifo, void * pEnqueue);
+bool FIFO_Dequeue(FIFOControl_T * pFifo, void * pDequeue);
+bool FIFO_Peek(FIFOControl_T * pFifo, void * pDequeue);
+bool FIFO_GetIterator(const FIFOControl_T * pFifo, uint32_t * pIterator);
+void * FIFO_Iterate(const FIFOControl_T * pFifo, uint32_t * pIterator);
+
 
 #endif
