@@ -20,6 +20,7 @@
 #include "Switches.h"
 #include "ByteFIFO.h"
 #include "string.h"
+#include "ModbusSlave.h"
 
 #define	COMM_TIMEOUT_LIMIT	5000
 
@@ -27,23 +28,17 @@ bool	CommTimeout = FALSE;
 uint32_t commTimeoutCounter = 0;
 uint32_t commTimeoutTick = 0;
 
-
-//	Incoming byte variable
-//	This is the location of which incoming bytes received from
-//	the USART3 interrupt are stored. Upon completion of an incoming byte,
-//	this will eventually be transferred into a FIFO, which will then be read
-//	by the command processor.
-static uint8_t m_nIncomingByte = '\0';
-
 //	ByteFIFO for incoming serial bytes.
 //	When we're ready to take in this information for the command processor,
 //	we'll use special access handlers that place this data into logical
 //	input/output buffers.
-DEFINE_STATIC_BYTE_FIFO(m_sCommandBufferFIFO, 128);
+DEFINE_STATIC_FIFO(m_sCommandBufferFIFO, uint8_t, 16);
 
 //	Input buffer
 static char m_aSerialInputBuffer[SERIAL_INPUT_BUFFER_SIZE] = {0};
 static uint32_t m_nSerialInputBufferPos = 0;
+
+static bool m_bReadyToAcceptData = false;
 
 //	Output buffer
 static char m_aSerialOutputBuffer[SERIAL_OUTPUT_BUFFER_SIZE] = {0};
@@ -63,9 +58,10 @@ typedef enum
 {
 	COMMAND_INIT,
 	COMMAND_IDLE,
+	COMMAND_MODBUS_BUFFER_DEBUG_OUTPUT,
 }	Command_State_T;
 
-Command_State_T m_eCommandState = COMMAND_INIT;
+static Command_State_T m_eCommandState = COMMAND_INIT;
 bool m_bCharDataArrived = false;
 
 /*
@@ -77,13 +73,13 @@ bool m_bCharDataArrived = false;
 bool Command_PrepareForInput()
 {
 	//	Grab the USART3 handle.
-	UART_HandleTypeDef * pUSART = Main_Get_UART_Handle();
+	UART_HandleTypeDef * pUSART = Main_Get_Command_UART_Handle();
 
 	//	Result of our request.
 	HAL_StatusTypeDef eResult;
 
 	//	Do the request, and store the result.
-	eResult = HAL_UART_Receive_IT(pUSART, &m_nIncomingByte, 1);
+	eResult = Command_UART_Receive_IT(pUSART);
 
 	//	Based on the result, do something about it.
 	switch(eResult)
@@ -116,16 +112,64 @@ bool Command_PrepareForInput()
 */
 void Command_Process(void)
 {
+	//	An iterator variable, used for debugging the Modbus Slave data.
+	static uint32_t nModbusSlaveIter;
+
+	//	Temporary variables
+	uint32_t nNext;
+	ModbusByte_T * pByte;
+
+	//	If incoming data hasn't been initialized yet, go ahead and do that.
+	//	Note that this flag could become "unset" if for whatever reason, initializing
+	//	does not pass.
+	if (!m_bReadyToAcceptData)
+	{
+		if (FIFO_GetFree(&m_sCommandBufferFIFO))
+		{
+			m_bReadyToAcceptData = Command_PrepareForInput();
+		}
+	}
+
+
+
+
 	switch(m_eCommandState)
 	{
 		case COMMAND_INIT:
 			//	We haven't yet asked for a command at this point in time.
 			//	Go ahead and do so.
-			if (Command_PrepareForInput())
+			if (m_bReadyToAcceptData)
 			{
 				m_eCommandState = COMMAND_IDLE;
 			}
+
+			//	Force our debug output to be low.
+			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_RESET);
+
 			break;
+
+		case  COMMAND_MODBUS_BUFFER_DEBUG_OUTPUT:
+			//	If we're here, that means we've been asked to iterate through all of the pending
+			//	bytes of the Modbus Slave FIFO.
+			//	Let's do exactly that.
+			nNext = nModbusSlaveIter;
+			pByte = (ModbusByte_T *) FIFO_Iterate(ModbusSlave_GetFIFO(), &nModbusSlaveIter);
+
+			if ( pByte == NULL )
+			{
+				//	There isn't anything else in this buffer.
+				m_eCommandState = COMMAND_IDLE;
+			}
+			else
+			{
+				printf("[%3lu] [0x%02x] [%c, %c]\r\n",
+						nNext,
+						pByte->nByte,
+						pByte->bContiguousDataTimeout ? 'C' : '-',
+						pByte->bIncomingMsgTimeout ? 'M' : '-');
+			}
+
+
 
 		case COMMAND_IDLE:
 			//	We're waiting to receive input from the user.
@@ -141,6 +185,15 @@ void Command_Process(void)
 
 				switch(nIncomingChar)
 				{
+				case 't':
+				case 'T':
+					//	Force our debug output to be low.
+					HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_RESET);
+
+					//	Restart the timer.
+					ModbusSlave_Debug_StartTimer();
+					break;
+
 				case 'r':
 				case 'R':
 					Relay_Run_Demo();
@@ -164,6 +217,14 @@ void Command_Process(void)
 					printf("╟───┼───┼───┼───┼───┼───┼───┼───╢\n\r");
 					printf("║ %d │ %d │ %d │ %d │ %d │ %d │ %d │ %d ║\n\r", SW1, SW2, SW3, SW4, SW5, SW6, SW7, SW8);
 					printf("╚═══╧═══╧═══╧═══╧═══╧═══╧═══╧═══╝\n\r");
+					break;
+
+				case 'm':
+				case 'M':
+					if (FIFO_GetIterator(ModbusSlave_GetFIFO(), &nModbusSlaveIter))
+					{
+						m_eCommandState = COMMAND_MODBUS_BUFFER_DEBUG_OUTPUT;
+					}
 					break;
 
 				case '[':
@@ -217,19 +278,28 @@ void Command_Process(void)
 /*	HAL UART callback functions	*/
 
 /*
-	Function:	HAL_UART_RxCpltCallback()
+	Function:	Command_UART_RxCpltCallback()
 	Description:
-		Whenever data is received on the serial USART, go ahead and
-		attempt to insert it into the appropriate FIFO.
+		Callback function of which should be called whenever
+		data is received on the UART.
 
+		This function is called from HAL_UART_RxCpltCallback
+		whenever the callback is from USART3.
 */
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+void Command_UART_RxCpltCallback(void)
 {
+	//	TODO:	This needs to be modified to be a serious error.
+	//			This function never actually is "complete", since we're
+	//			constantly reading into a FIFO and ready to process
+	//			serial input.
+
+
+
 	//	Our input buffer, m_nIncomingByte, now contains
 	//	the next byte sent across the USART.
 
 	//	Go ahead and attempt to insert it into the FIFO.
-	bool bInserted = ByteFIFO_Enqueue(&m_sCommandBufferFIFO, m_nIncomingByte);
+	//bool bInserted = FIFO_Enqueue(&m_sCommandBufferFIFO, &m_nIncomingByte);
 
 	//	TODO:	There should be some handling here... for now,
 	//			it doesn't actually do anything.
@@ -253,20 +323,26 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 	*/
 
 	//	Initialize the next request for incoming data.
-	Command_PrepareForInput();
+	//volatile bool bReadyForData = Command_PrepareForInput();
+	//if (!bReadyForData)
+	//{
+	//	printf("not ready for data uh-oh");
+	//}
+	//m_bReadyToAcceptData = bReadyForData;
 }
 
 
 
-/*
-	Function:	HAL_UART_ErrorCallback()
-	Description:
-		Overwrites a weak function.
-		Allows us to have some sense of control over failures
-*/
-void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
-{
 
+
+/*
+	Function:	Command_UART_ErrorCallback();
+	Description:
+		Handler for a failure/error case scenario on the Command UART.
+*/
+void Command_UART_ErrorCallback(void)
+{
+	m_bReadyToAcceptData = false;
 }
 
 /*
@@ -305,10 +381,11 @@ bool Command_CollectRS232Input(char * const pBuff, uint32_t nBufferLen, uint32_t
 		pBuffIter = &(pBuff[(*pBufferPos)]);
 
 		//	Dequeues a single character from the FIFO
-		nInputChar = ByteFIFO_Dequeue(&m_sCommandBufferFIFO);
+		bool bCharDequeued = false;
+		bCharDequeued = FIFO_Dequeue(&m_sCommandBufferFIFO, &nInputChar);
 
 		//	If there's no character for us to dequeue, then exit the while loop.
-		if (nInputChar == -1)
+		if (bCharDequeued == false)
 		{
 			break;
 		}
@@ -398,5 +475,108 @@ void Command_ClearInputBuffer(void)
 	memset(m_aSerialInputBuffer, 0, SERIAL_INPUT_BUFFER_SIZE);
 	m_nSerialInputBufferPos = 0;
 }
+
+/*
+	Function:	Command_UART_RxISR_8BIT
+	Description:
+		Modified version of the UART_RxISR_8BIT function that
+		more appropriately handles the Command processor input.
+ */
+void Command_UART_RxISR_8BIT(UART_HandleTypeDef *huart)
+{
+	uint16_t uhMask = huart->Mask;
+	uint16_t  uhdata;
+
+	/* Check that a Rx process is ongoing */
+	if (huart->RxState == HAL_UART_STATE_BUSY_RX)
+	{
+		//	Reads the data from the RDR (Read Data Register)
+		//	Note that by reading from RDR, we clear the RXNE flag in hardware.
+		//	If any other data happens to come in after we're done here, we'll
+		//	get interrupted again.
+		uhdata = (uint16_t) READ_REG(huart->Instance->RDR);
+		uint8_t res = (uint8_t)(uhdata & (uint8_t)uhMask);
+
+		//	Enqueues the result into the FIFO
+		bool bInserted = FIFO_Enqueue(&m_sCommandBufferFIFO, &res);
+
+		//	Determine if we've overrun our FIFO. If so, we should disable
+		//	the USART RX line for the time being, since we can't really
+		//	take in any more data.
+		if (!bInserted)
+		{
+			//	Some error handling that we'll worry about later.
+		}
+	}
+	else
+	{
+		/* Clear RXNE interrupt flag */
+		__HAL_UART_SEND_REQ(huart, UART_RXDATA_FLUSH_REQUEST);
+	}
+}
+
+/*
+	Function:	Command_UART_Receive_IT
+	Description:
+		A modified version of the HAL_UART_Receive_IT function.
+		This version of the request function sets up the interrupt handler to accept
+		a continuous stream of incoming bytes into a software-based FIFO.
+*/
+HAL_StatusTypeDef Command_UART_Receive_IT(UART_HandleTypeDef *huart)
+{
+	//	Check that a Rx process is not already ongoing
+	if (huart->RxState == HAL_UART_STATE_READY)
+	{
+		//	Lock the huart, since we're about to modify it.
+		__HAL_LOCK(huart);
+
+		//	Computation of UART mask to apply to RDR register
+		UART_MASK_COMPUTATION(huart);
+
+		huart->ErrorCode = HAL_UART_ERROR_NONE;
+		huart->RxState = HAL_UART_STATE_BUSY_RX;
+
+		//	Disable the overrun error detection
+		SET_BIT(huart->Instance->CR3, USART_CR3_OVRDIS);
+
+		//	Enable the UART Error Interrupt: (Frame error, noise error, overrun error)
+		SET_BIT(huart->Instance->CR3, USART_CR3_EIE);
+
+		//	Set the Rx ISR function pointer according to the data word length
+		huart->RxISR = Command_UART_RxISR_8BIT;
+
+		__HAL_UNLOCK(huart);
+
+		//	Enable the UART Parity Error interrupt and Data Register Not Empty interrupt
+		SET_BIT(huart->Instance->CR1, USART_CR1_PEIE | USART_CR1_RXNEIE);
+
+		return HAL_OK;
+	}
+	else
+	{
+		return HAL_BUSY;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /*************************** END OF FILE **************************************/
