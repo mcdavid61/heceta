@@ -32,10 +32,10 @@ void Configuration_Init(void)
 	//	Modbus Address
 	uint8_t nModbusAddress = 0;
 
-	nModbusAddress += !!(nSwitches & SWITCH_BIT(1)) 	? (0x40) 			: (0x00);
-	nModbusAddress += !!(nSwitches & SWITCH_BIT(2)) 	? (0x20) 			: (0x00);
-	nModbusAddress += !!(nSwitches & SWITCH_BIT(3)) 	? (0x10) 			: (0x00);
-	nModbusAddress =  (nModbusAddress) 			? (nModbusAddress) 	: (0x80);
+	nModbusAddress += !!(nSwitches & SWITCH_BIT(1)) 	? (40) 			: (0);
+	nModbusAddress += !!(nSwitches & SWITCH_BIT(2)) 	? (20) 			: (0);
+	nModbusAddress += !!(nSwitches & SWITCH_BIT(3)) 	? (10) 			: (0);
+	nModbusAddress =  (nModbusAddress) 			? (nModbusAddress) 		: (80);
 
 	m_sModbusConfiguration.nModbusAddress = nModbusAddress;
 
