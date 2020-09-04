@@ -17,6 +17,7 @@
 #define SW7	 HAL_GPIO_ReadPin(SW7_GPIO_Port, SW7_Pin)
 #define SW8	 HAL_GPIO_ReadPin(SW8_GPIO_Port, SW8_Pin)
 
+#define SWITCH_BIT(x) (1 << (x-1))
 uint8_t	Switches_Read(void);
 
 #endif /* SWITCHES_H_ */

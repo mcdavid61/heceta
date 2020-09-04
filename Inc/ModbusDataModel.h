@@ -16,6 +16,7 @@
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
 	HOLDING_REGISTER(00000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
 	HOLDING_REGISTER(00010,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
+	HOLDING_REGISTER(40000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
 	HOLDING_REGISTER(42100, "Parameter Unlock", 	NULL, NULL) \
 	//	To be continued.
 
