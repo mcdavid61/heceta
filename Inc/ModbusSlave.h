@@ -25,8 +25,6 @@ typedef enum
 	MODBUS_EXCEPTION_GATEWAY_TARGET_FAILED_RESP	= 0x0B,
 }	ModbusException_T;
 
-#define MODBUS_SLAVE_ADDRESS 0x01
-#define Configuration_GetSlaveAddress() MODBUS_SLAVE_ADDRESS
 typedef struct
 {
 	uint8_t nByte;

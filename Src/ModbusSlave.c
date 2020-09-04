@@ -22,6 +22,7 @@
 #include "ModbusSlave.h"
 #include "ModbusDataModel.h"
 #include "CRC.h"
+#include "Configuration.h"
 
 //	Modbus will use its own FIFO structure.
 //	This is necessary to store whether or not it meets the appropriate
@@ -29,9 +30,6 @@
 
 
 //	Configuration of the ModbusSlave timer.
-#define MODBUS_SLAVE_BAUD_RATE 			(19200)
-#define MODBUS_SLAVE_CHARACTER_LEN		(11)
-#define MODBUS_SLAVE_CHARACTER_TIME_US 	((unsigned int) (((MODBUS_SLAVE_CHARACTER_LEN) * 1000000) / MODBUS_SLAVE_BAUD_RATE))
 #define MODBUS_SLAVE_MSG_STREAM_MAXIMUM_GAP 	(1.5)
 #define MODBUS_SLAVE_MSG_STREAM_TIMEOUT 		(3.5)
 
@@ -100,15 +98,18 @@ void ModbusSlave_Init(void)
 	uint32_t nTimerTicksPerSec = nSystemClockRate / (nPrescaler + 1);
 
 	//	How long is each tick (in terms of nanoseconds)
-	uint32_t nNanosecondsPerTimerTick = (1000000000 / nTimerTicksPerSec) + 1;
+	uint32_t nNanosecondsPerTimerTick = (1000000000 / nTimerTicksPerSec);
+
+	//	Optional addition of one second to make this stricter
+	//	nNanosecondsPerTimerTick += 1;
 
 	//	Based on our baud rate, which is a variable, determine how fast a
 	//	character time is.
 	//	TODO:	This will eventually be a dynamic value, but for now, it is #define'd
-	uint32_t nBaudRate = MODBUS_SLAVE_BAUD_RATE;
+	uint32_t nBaudRate = Configuration_GetBaudRate();
 
 	//	Nanoseconds per char
-	uint32_t nNanosecondsPerChar = (1000000000 / (nBaudRate / MODBUS_SLAVE_CHARACTER_LEN));
+	uint32_t nNanosecondsPerChar = (1000000000 / (nBaudRate / Configuration_GetMessageLength()));
 
 	//	Update the number of ticks required for 1.5 and 3.5
 	m_n15CharTicks = (nNanosecondsPerChar * 1.5) / nNanosecondsPerTimerTick;
@@ -617,7 +618,7 @@ void ModbusFunction_ReadCoilStatus(uint8_t * pInputBuffer, uint32_t nInputBuffer
 	memset(pOutputBuffer, 0, nOutputBufferLen);
 
 	//	Address field (which Modbus slave is responding)
-	pOutputBuffer[0] = MODBUS_SLAVE_ADDRESS;
+	pOutputBuffer[0] = Configuration_GetModbusAddress();
 
 	//	Response PDU
 	uint8_t * pMbRespPDU = &pOutputBuffer[1];
@@ -804,7 +805,7 @@ uint32_t ModbusSlave_BuildFrame(uint8_t * pPDU, uint32_t nPDUSize,
 
 		//	Grab the slave address, and store it in the output buffer.
 		uint8_t * pOutputBufferSlaveAddr = &pOutputBuffer[0];
-		(*pOutputBufferSlaveAddr) = Configuration_GetSlaveAddress();
+		(*pOutputBufferSlaveAddr) = Configuration_GetModbusAddress();
 		nOutputBufferBytesUsed += 1;
 
 		//	Grab the pPDU, and store it in the output buffer.
@@ -981,7 +982,7 @@ void ModbusSlave_Process(void)
 			{
 				//	This is a valid Modbus command.
 				//	Next, determine if this Modbus command is addressed to us.
-				if (m_aModbusSlaveInputBuffer[0] == 0x01)
+				if (m_aModbusSlaveInputBuffer[0] == Configuration_GetModbusAddress())
 				{
 					//	Yep, it wants us to respond.
 

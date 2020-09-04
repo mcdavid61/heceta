@@ -31,6 +31,7 @@
 #include "ADC.h"
 #include "Debug.h"
 #include "ModbusSlave.h"
+#include "Configuration.h"
 
 /* USER CODE END Includes */
 
@@ -513,6 +514,30 @@ static void MX_USART1_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART1_Init 0 */
+	Configuration_Init();
+
+	huart1.Instance = USART1;
+	huart1.Init.BaudRate = Configuration_GetBaudRate();
+	huart1.Init.WordLength = UART_WORDLENGTH_8B;
+	huart1.Init.StopBits = (Configuration_GetStopBits() == 2) ? UART_STOPBITS_2 : UART_STOPBITS_1;
+	huart1.Init.Parity = (Configuration_GetParity() == 0) ? UART_PARITY_NONE :
+							((Configuration_GetParity() == 2) ? UART_PARITY_EVEN : UART_PARITY_ODD);
+	huart1.Init.Mode = UART_MODE_TX_RX;
+	huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+	huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+	huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+	if (HAL_UART_Init(&huart1) != HAL_OK)
+	{
+		Error_Handler();
+	}
+	else
+	{
+		//	There's no logical way to reach the end of this function.
+		//	I've done this intentionally so that we can define our own
+		//	stop bits, parity, and baud rate.
+		return;
+	}
 
   /* USER CODE END USART1_Init 0 */
 
