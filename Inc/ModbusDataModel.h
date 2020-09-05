@@ -8,6 +8,8 @@
 #ifndef MODBUSINTERFACE_H_
 #define MODBUSDATAMODEL_H_
 
+#include "ModbusSlave.h"
+
 #define HOLDING_REGISTER(addr, str, read, write) \
 	case addr: \
 		pReadFunction = read; \
@@ -45,6 +47,6 @@
 	//	To be continued.
 
 bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn);
-bool ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn);
+ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn);
 
 #endif /* MODBUSINTERFACE_H_ */

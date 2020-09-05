@@ -2,13 +2,28 @@
  * ModbusDataModel.c
  *
  *  Created on: Aug 28, 2020
- *      Author: BFS
+ *      Author: Constantino Flouras
+ *
+ *  Description:
+ *  	The following module implements all of the MODBUS functions
+ *  	supported by the Heceta Relay Module.
+ *
+ *  	Functions are implemented as such: each function will return a
+ *  	ModbusException_T type. A successful action will return EXCEPTION_OK
+ *  	(or value 0), and any parameters of which are pointers will contain
+ *  	valid values. Any failure action will return the appropriate
+ *  	ModbusException_T type. Returning the ModbusException_T type allows
+ *  	the exception to propagate up the stack to the caller.
+ *
+ *  	It is safe to assume that a non-zero value
+ *  	indicates some sort of failure.
  */
 
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include "ModbusDataModel.h"
+#include "ModbusSlave.h"
 /*
 	Function:	ModbusDataModel_ReturnResetState()
 				ModbusDataModel_ReturnSetState()
@@ -85,13 +100,18 @@ bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn)
 		ModbusDataModel.h file. If the specific register does not exist,
 		this function will return false.
 */
-bool ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn)
+ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn)
 {
+	//	The ModbusException_T to return.
+	//	For now, return the maximum value possible.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_UNKNOWN;
+
+	//	Holding values, to store the read/write functions.
+	//	These define the format of the functions.
 	uint16_t (*pReadFunction)(void) = NULL;
 	void (*pWriteFunction)(void) = NULL;
-	(void) pWriteFunction;
 
-	bool bSuccess = false;
+	(void) pWriteFunction;
 
 	//	Using the header file, determine where we can read the coil
 	//	requested. If it's not defined, the function will remain NULL.
@@ -112,17 +132,18 @@ bool ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn)
 			(*nReturn) = pReadFunction();
 		}
 
-		//	Set the success variable to true.
-		bSuccess = true;
+		//	This was successful, as far as this function is concerned.
+		//	Go ahead and set this function's return value to OK.
+		eReturn = MODBUS_EXCEPTION_OK;
 	}
 	else
 	{
 		//	There's no valid response for this particular address.
-		//	Do not touch the value of (*bReturn).
-		//	Set the success value to false.
-		bSuccess = false;
+		//	This should return an MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS
+		//	since there's no way to process this address.
+		eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
 	}
 
-	return bSuccess;
+	return eReturn;
 }
 
