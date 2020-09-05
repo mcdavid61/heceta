@@ -30,9 +30,9 @@
 		pWriteFunction = write; \
 		break;
 #define FOREACH_INPUT_REGISTER(INPUT_REGISTER) \
-	INPUT_REGISTER(31100, "Offline Mode Status", 	NULL, NULL), \
-	INPUT_REGISTER(31101, "Temperature (C)", 		NULL, NULL), \
-	INPUT_REGISTER(31102, "Fault Code", 			NULL, NULL),
+	INPUT_REGISTER(31100, "Offline Mode Status", 	ModbusDataModel_ReturnResetState_uint16_t, NULL) \
+	INPUT_REGISTER(31101, "Temperature (C)", 		NULL, NULL) \
+	INPUT_REGISTER(31102, "Fault Code", 			NULL, NULL)
 	//	To be continued.
 
 #define COIL(addr, str, read, write) \
@@ -48,5 +48,6 @@
 
 bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn);
 ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn);
+ModbusException_T ModbusDataModel_ReadInputRegister(uint16_t nAddress, uint16_t * nReturn);
 
 #endif /* MODBUSINTERFACE_H_ */

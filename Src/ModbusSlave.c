@@ -731,15 +731,16 @@ ModbusException_T ModbusFunction_Exception(	uint8_t * pMbReqPDU, uint32_t nMbReq
 
 
 /*
-	Function:	ModbusFunction_ReadHoldingRegisters()
+	Function:	ModbusFunction_ReadRegisters()
 	Description:
 		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
 		Returns zero (no exception) upon success. Returns a
 		non-zero value representing the error code upon failure.
 */
-ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+ModbusException_T ModbusFunction_ReadRegisters(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
 		   	   	   	   	   	   	   	   					uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
-														uint32_t * pMbRspPDUUsed)
+														uint32_t * pMbRspPDUUsed,
+														ModbusException_T (*pRegister)(uint16_t nAddress, uint16_t * nReturn))
 {
 	//	Check #1:	0x0001 <= Quantity of Outputs <= 0x07D0
 	//	We need to ensure we didn't call too many or too few outputs.
@@ -765,7 +766,7 @@ ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint
 	memset(pMbRspPDU, 0, nMbRspPDULen);
 
 	//	Function Field
-	pMbRspPDU[0] = 0x03;
+	pMbRspPDU[0] = pMbReqPDU[0];
 
 	//	Byte Count
 	pMbRspPDU[1] = (2 * nNumberOfRegisters);
@@ -783,7 +784,7 @@ ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint
 		uint16_t nValue;
 		ModbusException_T eException;
 
-		eException = ModbusDataModel_ReadHoldingRegister(nCurrentAddress, &nValue);
+		eException = pRegister(nCurrentAddress, &nValue);
 
 		if (eException == MODBUS_EXCEPTION_OK)
 		{
@@ -924,9 +925,16 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 
 			break;
 		case 0x03:
-			eMbException = ModbusFunction_ReadHoldingRegisters(		pMbReqPDU, nMbReqPDULen,
-												   	   	   	   	    pMbRspPDU, nMbRspPDULen,
-																    &nMbRspPDUUsed);
+			eMbException = ModbusFunction_ReadRegisters(		pMbReqPDU, nMbReqPDULen,
+												   	   	   	   	pMbRspPDU, nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_ReadHoldingRegister);
+			break;
+		case 0x04:
+			eMbException = ModbusFunction_ReadRegisters(		pMbReqPDU, nMbReqPDULen,
+												   	   	   	   	pMbRspPDU, nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_ReadInputRegister);
 			break;
 		default:
 			eMbException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
