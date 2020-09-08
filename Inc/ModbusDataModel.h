@@ -16,9 +16,9 @@
 		pWriteFunction = write; \
 		break;
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
-	HOLDING_REGISTER(00000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
-	HOLDING_REGISTER(00010,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
-	HOLDING_REGISTER(40000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	NULL) \
+	HOLDING_REGISTER(00000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
+	HOLDING_REGISTER(00010,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
+	HOLDING_REGISTER(40000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
 	HOLDING_REGISTER(42100, "Parameter Unlock", 	NULL, NULL) \
 	//	To be continued.
 
@@ -49,5 +49,6 @@
 bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn);
 ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn);
 ModbusException_T ModbusDataModel_ReadInputRegister(uint16_t nAddress, uint16_t * nReturn);
+ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16_t * nValue);
 
 #endif /* MODBUSINTERFACE_H_ */

@@ -32,6 +32,10 @@
 		at all times.
 */
 uint16_t m_nTestCounter = 0;
+void ModbusDataModel_WritePollingValue(uint16_t nPollingValue)
+{
+	m_nTestCounter = nPollingValue;
+}
 uint16_t ModbusDataModel_ReturnResetState_uint16_t()
 {
 	return m_nTestCounter++;
@@ -130,6 +134,66 @@ ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_
 		if (nReturn != NULL)
 		{
 			(*nReturn) = pReadFunction();
+		}
+
+		//	This was successful, as far as this function is concerned.
+		//	Go ahead and set this function's return value to OK.
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+	else
+	{
+		//	There's no valid response for this particular address.
+		//	This should return an MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS
+		//	since there's no way to process this address.
+		eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
+	}
+
+	return eReturn;
+}
+
+/*
+	Function:	ModbusDataModel_WriteHoldingRegister()
+	Description:
+		Attempts to write a specific register, as defined by the
+		ModbusDataModel.h file. If the specific register does not exist,
+		this function will return an exception.
+
+		If the uint16_t * nValue pointer is NULL, this function will simply
+		check to ensure that the register exists and is writeable, returning
+		MODBUS_EXCEPTION_OK if that is the case, and MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS
+		if not.
+*/
+ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16_t * nValue)
+{
+	//	The ModbusException_T to return.
+	//	For now, return the maximum value possible.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_UNKNOWN;
+
+	//	Holding values, to store the read/write functions.
+	//	These define the format of the functions.
+	uint16_t (*pReadFunction)(void) = NULL;
+	void (*pWriteFunction)(uint16_t nValue) = NULL;
+
+	(void) pReadFunction;
+
+	//	Using the header file, determine where we can write the register
+	//	requested. If it's not defined, the function will remain NULL.
+	switch(nAddress)
+	{
+		FOREACH_HOLDING_REGISTER(HOLDING_REGISTER);
+		default:
+			break;
+	}
+
+	//	Determine if there's a valid response for this particular address.
+	if (pWriteFunction != NULL)
+	{
+		//	There is.
+		//	If there's a value that was requested to be written, go ahead
+		//	and attempt to write it.
+		if (nValue != NULL)
+		{
+			pWriteFunction((*nValue));
 		}
 
 		//	This was successful, as far as this function is concerned.
