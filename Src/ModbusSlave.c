@@ -592,6 +592,128 @@ ModbusException_T ModbusFunction_Exception(	uint8_t * pMbReqPDU, uint32_t nMbReq
 }
 
 /*
+	Function:	ModbusFunction_WriteRegisters()
+	Description:
+		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
+		Returns zero (no exception) upon success. Returns a
+		non-zero value representing the error code upon failure.
+*/
+ModbusException_T ModbusFunction_WriteRegisters(		uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+		   	   	   	   	   	   	   	   					uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+														uint32_t * pMbRspPDUUsed,
+														ModbusException_T (*pRegisterWrite)(uint16_t nAddress, uint16_t * nValue))
+{
+	//	Check #1:	0x0001 <= Quantity of Outputs <= 0x07D0
+	//								AND
+	//	Check #2:	Byte Count == Quantity of Registers * 2
+	//	We need to ensure we didn't call too many or too few outputs.
+	//	Quantity of outputs defined in byte 3 (upper) and 4 (lower)
+	//	of mb_req_pdu.
+	//
+	//	Additionally, we need to ensure we've received
+	//	enough bytes from the beginning to do this write.
+	uint32_t nNumberOfRegisters = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
+	uint32_t nNumberOfBytes = (pMbReqPDU[5]);
+	if (nNumberOfRegisters < 1 || nNumberOfRegisters > 0x007B
+			|| (nNumberOfRegisters * 2) != nNumberOfBytes)
+	{
+		return MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+	}
+
+	//	Check #3:	Starting Address == OK
+	//						AND
+	//	Check #4:	Starting Address + Quantity of Registers == OK
+	//	Check to ensure that the registers requested are valid registers
+	//	that can be written to.
+	//	NOTE:	I have adjusted this function slightly-- not only does it
+	//			check the starting and ending register, it also checks every
+	//			single register in between.
+
+	uint32_t nStartAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
+	uint16_t nRelativeRegisterCounter = 0;
+	while ( nRelativeRegisterCounter < nNumberOfRegisters)
+	{
+		//	Current address
+		uint32_t nCurrentAddress = (nStartAddress + nRelativeRegisterCounter);
+
+		//	Attempt to write a "NULL" value.
+		//	This effectively does nothing,
+		ModbusException_T eException;
+
+		eException = pRegisterWrite(nCurrentAddress, NULL);
+		if (eException == MODBUS_EXCEPTION_OK)
+		{
+			nRelativeRegisterCounter++;
+		}
+		else
+		{
+			//	We can't write to this register.
+			//	Throw the exception that was raised by the pRegisterWrite function.
+			return eException;
+		}
+	}
+
+	//	Restart the relative register counter at 0
+	nRelativeRegisterCounter = 0;
+
+	//	Now--we're actually going to do the write.
+	while ( nRelativeRegisterCounter < nNumberOfRegisters)
+	{
+		//	Current address
+		uint32_t nCurrentAddress = (nStartAddress + nRelativeRegisterCounter);
+
+		//	Grab the appropriate bytes from the MbReqPDU-- the value we want to write.
+		uint16_t nValue = (	(pMbReqPDU[6 + (nRelativeRegisterCounter*2)		] << 8) |
+							(pMbReqPDU[6 + (nRelativeRegisterCounter*2) + 1 ]));
+		uint16_t nValueResult = nValue;
+
+		//	Attempt to write the value.
+		ModbusException_T eException;
+		eException = pRegisterWrite(nCurrentAddress, &nValueResult);
+
+		if (eException != MODBUS_EXCEPTION_OK)
+		{
+			return eException;
+		}
+
+		//	If the nRegisterResult equal to the nRegisterValue?
+		if (nValueResult != nValue)
+		{
+			//	Something went wrong-- we should have mirrored the response.
+			return MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+		}
+		else
+		{
+			nRelativeRegisterCounter++;
+		}
+	}
+
+	//	Our writes are complete.
+	//	Now--build the response, if we've reached this point.
+
+	//	Clear response
+	memset(pMbRspPDU, 0, nMbRspPDULen);
+	(*pMbRspPDUUsed) = 0;
+
+	//	Build
+	//	Function code
+	pMbRspPDU[0] = pMbReqPDU[0];
+
+	//	Starting address
+	pMbRspPDU[1] = (nStartAddress >> 8) & 0xFF;
+	pMbRspPDU[2] = (nStartAddress) 		& 0xFF;
+
+	//	Number of registers
+	pMbRspPDU[3] = (nRelativeRegisterCounter >> 8)  & 0xFF;
+	pMbRspPDU[4] = (nRelativeRegisterCounter) 		& 0xFF;
+
+	(*pMbRspPDUUsed) = 5;
+
+	//	All good.
+	return MODBUS_EXCEPTION_OK;
+}
+
+/*
 	Function:	ModbusFunction_WriteRegister()
 	Description:
 		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
@@ -606,7 +728,7 @@ ModbusException_T ModbusFunction_WriteRegister(		uint8_t * pMbReqPDU, uint32_t n
 	//	Check #1:	0x0000 <= Register Value <= 0xFFFF
 	//	Ensure that the register value is acceptable.
 	uint16_t nRegisterValue = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
-	if (nRegisterValue < 0x0000 && nRegisterValue > 0xFFFF)
+	if (nRegisterValue < 0x0000 || nRegisterValue > 0xFFFF)
 	{
 		//	Throw an exception.
 		//	This is merely to conform to the MODBUS specification, despite the fact
@@ -673,7 +795,7 @@ ModbusException_T ModbusFunction_ReadRegisters(	uint8_t * pMbReqPDU, uint32_t nM
 	//	Quantity of outputs defined in byte 3 (upper) and 4 (lower)
 	//	of mb_req_pdu.
 	uint32_t nNumberOfRegisters = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
-	if (nNumberOfRegisters < 1 && nNumberOfRegisters > 0x007D)
+	if (nNumberOfRegisters < 1 || nNumberOfRegisters > 0x007D)
 	{
 		return MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 	}
@@ -868,6 +990,12 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 																&nMbRspPDUUsed,
 																ModbusDataModel_WriteHoldingRegister);
 			break;
+		case 0x10:
+			eMbException = ModbusFunction_WriteRegisters(		pMbReqPDU,	nMbReqPDULen,
+																pMbRspPDU,	nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_WriteHoldingRegister);
+			break;
 		default:
 			eMbException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
 			break;
@@ -971,6 +1099,15 @@ void ModbusSlave_Process(void)
 					}
 
 					m_eModbusSlaveState = MODBUS_SLAVE_SEND_WAIT;
+				}
+				else
+				{
+					//	While this is indeed a valid Modbus command, it isn't
+					//	addressed to us specifically.
+
+					//	This wasn't anything useful to us, go ahead and wipe the buffer.
+					memset(m_aModbusSlaveInputBuffer, 0, MODBUS_SLAVE_INPUT_BUFFER_SIZE);
+					m_nModbusSlaveInputBufferPos = 0;
 				}
 			}
 			break;

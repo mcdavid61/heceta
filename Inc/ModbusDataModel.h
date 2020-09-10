@@ -16,10 +16,17 @@
 		pWriteFunction = write; \
 		break;
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
-	HOLDING_REGISTER(00000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
-	HOLDING_REGISTER(00010,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
-	HOLDING_REGISTER(40000,	"Polling",				ModbusDataModel_ReturnResetState_uint16_t,	ModbusDataModel_WritePollingValue) \
-	HOLDING_REGISTER(42100, "Parameter Unlock", 	NULL, NULL) \
+	HOLDING_REGISTER(42100, "Parameter Unlock", 				Configuration_GetParameterUnlockCode, 			Configuration_SetParameterUnlockCode) \
+	HOLDING_REGISTER(42101,	"RS-485 Node Address",				Configuration_GetModbusAddress,					NULL) \
+	HOLDING_REGISTER(42102,	"Baud Rate",						Configuration_IsBaudRate19200,					NULL) \
+	HOLDING_REGISTER(42103,	"Stop Bits",						Configuration_GetStopBits,						NULL) \
+	HOLDING_REGISTER(42104,	"Parity",							Configuration_GetParity,						NULL) \
+	HOLDING_REGISTER(42105,	"Fault Relay Map",					Configuration_GetFaultRelayMap,					Configuration_SetFaultRelayMap) \
+	HOLDING_REGISTER(42800,	"Manual Override Enable",			Configuration_GetManualOverrideEnabled,			Configuration_SetManualOverrideEnabled) \
+	HOLDING_REGISTER(42801,	"Green LED State",					Configuration_GetGreenLED,						Configuration_SetGreenLED) \
+	HOLDING_REGISTER(42802,	"Red LED State",					Configuration_GetRedLED,						Configuration_SetRedLED) \
+	HOLDING_REGISTER(42803,	"Amber LED State",					Configuration_GetAmberLED,						Configuration_SetAmberLED) \
+
 	//	To be continued.
 
 

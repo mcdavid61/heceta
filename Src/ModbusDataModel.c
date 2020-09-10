@@ -24,6 +24,7 @@
 #include <stdbool.h>
 #include "ModbusDataModel.h"
 #include "ModbusSlave.h"
+#include "Configuration.h"
 /*
 	Function:	ModbusDataModel_ReturnResetState()
 				ModbusDataModel_ReturnSetState()
@@ -59,7 +60,7 @@ bool ModbusDataModel_ReturnSetState()
 bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn)
 {
 	bool (*pReadFunction)(void) = NULL;
-	void (*pWriteFunction)(void) = NULL;
+	void * pWriteFunction = NULL;
 	(void) pWriteFunction;
 
 	bool bSuccess = false;
@@ -113,7 +114,7 @@ ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_
 	//	Holding values, to store the read/write functions.
 	//	These define the format of the functions.
 	uint16_t (*pReadFunction)(void) = NULL;
-	void (*pWriteFunction)(void) = NULL;
+	void * pWriteFunction = NULL;
 
 	(void) pWriteFunction;
 
@@ -172,7 +173,7 @@ ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16
 	//	Holding values, to store the read/write functions.
 	//	These define the format of the functions.
 	uint16_t (*pReadFunction)(void) = NULL;
-	void (*pWriteFunction)(uint16_t nValue) = NULL;
+	bool (*pWriteFunction)(uint16_t nValue) = NULL;
 
 	(void) pReadFunction;
 
@@ -191,14 +192,17 @@ ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16
 		//	There is.
 		//	If there's a value that was requested to be written, go ahead
 		//	and attempt to write it.
+		//	If the value was invalid, the write function will return false
+		//	and thus, we'll throw an illegal data value error.
+		bool bValueWriteOK;
 		if (nValue != NULL)
 		{
-			pWriteFunction((*nValue));
+			bValueWriteOK = pWriteFunction((*nValue));
 		}
 
 		//	This was successful, as far as this function is concerned.
 		//	Go ahead and set this function's return value to OK.
-		eReturn = MODBUS_EXCEPTION_OK;
+		eReturn = bValueWriteOK ? MODBUS_EXCEPTION_OK : MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 	}
 	else
 	{
@@ -227,7 +231,7 @@ ModbusException_T ModbusDataModel_ReadInputRegister(uint16_t nAddress, uint16_t 
 	//	Holding values, to store the read/write functions.
 	//	These define the format of the functions.
 	uint16_t (*pReadFunction)(void) = NULL;
-	void (*pWriteFunction)(void) = NULL;
+	void * pWriteFunction = NULL;
 
 	(void) pWriteFunction;
 
