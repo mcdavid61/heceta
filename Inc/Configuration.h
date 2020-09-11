@@ -81,6 +81,13 @@ uint16_t Configuration_GetGreenLED(void);
 uint16_t Configuration_GetRedLED(void);
 uint16_t Configuration_GetAmberLED(void);
 
+uint16_t Configuration_GetMajorVersion(void);
+uint16_t Configuration_GetMinorVersion(void);
+uint16_t Configuration_GetBuildVersion(void);
 
+uint16_t Configuration_GetControllerUID_1_2(void);
+uint16_t Configuration_GetControllerUID_3_4(void);
+uint16_t Configuration_GetControllerUID_5_6(void);
+uint16_t Configuration_GetControllerUID_7_8(void);
 
 #endif /* CONFIGURATION_H_ */

@@ -25,6 +25,9 @@
 #include "ModbusDataModel.h"
 #include "ModbusSlave.h"
 #include "Configuration.h"
+#include "Relay.h"
+#include "ADC.h"
+
 /*
 	Function:	ModbusDataModel_ReturnResetState()
 				ModbusDataModel_ReturnSetState()

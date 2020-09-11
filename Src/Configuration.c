@@ -7,6 +7,7 @@
 #include "main.h"
 #include "Switches.h"
 #include "Configuration.h"
+#include "Version.h"
 
 //	The active Modbus configuration in use.
 //	This is what all accessors and modules will reference in order
@@ -235,3 +236,58 @@ uint16_t Configuration_GetAmberLED(void)
 	return m_sManualOutputConfiguration.bAmberLED;
 }
 
+//	Version information return is also handled by the configuration
+//	Note that the version info is located in
+
+/*
+	Function:	Configuration_GetMajorVersion()
+				Configuration_GetMinorVersion()
+				Configuration_GetBuildVersion()
+	Description:
+		Returns the specified parameter.
+*/
+uint16_t Configuration_GetMajorVersion(void)
+{
+	return SOFTWARE_VERSION_MAJOR;
+}
+uint16_t Configuration_GetMinorVersion(void)
+{
+	return SOFTWARE_VERSION_MINOR;
+}
+uint16_t Configuration_GetBuildVersion(void)
+{
+	return SOFTWARE_VERSION_BUILD;
+}
+
+//	Module Controller UID information
+//	There isn't a very clear definition for how this is generated yet
+//	So uh... it returns fun hex values for now!
+
+/*
+	Function:	Configuration_GetControllerUID_1_2()
+				Configuration_GetControllerUID_3_4()
+				Configuration_GetControllerUID_5_6()
+				Configuration_GetControllerUID_7_8()
+	Description:
+		Returns the specified parameter.
+		UID 1_2: 12xxxxxx
+		UID 3_4: xx34xxxx
+		UID 5_6: xxxx56xx
+		UID 7_8: xxxxxx78
+*/
+uint16_t Configuration_GetControllerUID_1_2(void)
+{
+	return 0x0123;
+}
+uint16_t Configuration_GetControllerUID_3_4(void)
+{
+	return 0x4567;
+}
+uint16_t Configuration_GetControllerUID_5_6(void)
+{
+	return 0x89AB;
+}
+uint16_t Configuration_GetControllerUID_7_8(void)
+{
+	return 0xCDEF;
+}

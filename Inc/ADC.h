@@ -15,7 +15,13 @@
 #define TS30	((uint16_t*)((uint32_t)0x1FFF75A8))
 #define TS110	((uint16_t*)((uint32_t)0x1FFF75CA))
 
+#include <stdint.h>
+
 void ADC_Process(void);
+uint16_t ADC_Get_Supply_Voltage(void);
+uint16_t ADC_Get_3V3_Voltage(void);
+uint16_t ADC_Get_VrefInt_Voltage(void);
+uint16_t ADC_Get_Temperature(void);
 
 
 #endif /* ADC_H_ */

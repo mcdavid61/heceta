@@ -65,10 +65,16 @@ void Relay_Run_Demo()
 	toggleFlag = TRUE;
 }
 
-void Relay_Set_Relay(uint16_t relay)
+bool Relay_Set_Relay(uint16_t relay)
 {
 	relayPattern = relay;
 	toggleFlag = FALSE;
+	return true;
+}
+
+uint16_t Relay_Get_Relay(void)
+{
+	return relayPattern;
 }
 
 void Relay_Set_CommRelay(_Bool state)
