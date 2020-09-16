@@ -324,7 +324,8 @@ bool ModbusDataModel_ReadObjectIDHelper_Str(uint8_t * pBuffer, int nBufferLen,	u
 /*
 	Function:	ModbusDataModel_ReadObjectID
 	Description:
-		Attempts to read the Object ID as specified. If the pBuffer is null, it will simply
+		Attempts to read the Object ID as specified.
+		If the pBuffer is null, it will simply
 		return the OK status if there is a valid way to acquire this Object ID.
 */
 ModbusException_T ModbusDataModel_ReadObjectID(	uint16_t nObjectID,	uint8_t * pBuffer,

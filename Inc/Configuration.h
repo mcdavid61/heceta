@@ -27,7 +27,6 @@
 #define MAJOR_MINOR_REV QUOTE_EXP(SOFTWARE_VERSION_MAJOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_MINOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_BUILD)"\0"
-
 /*
 	Structure:	ModbusConfiguration_T
 	Description:

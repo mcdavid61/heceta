@@ -864,10 +864,17 @@ ModbusException_T ModbusFunction_ReadRegisters(	uint8_t * pMbReqPDU, uint32_t nM
 			[nObjectID, nSize, aData].
 		If the object cannot fit or some other error occurs, 0 is returned.
 		Otherwise, the number of bytes written is returned.
+
+		Failure conditions:
+		-	Couldn't read the ObjectID	-->	doesn't exist
+		-	Couldn't read the ObjectID  --> doesn't fit
+
+		How do we differentiate between the two?
 */
 unsigned int ModbusFunction_AppendObject(	uint8_t * pBuffer,
 											int nBytesLeft,
-											uint8_t nObjectID)
+											uint8_t nObjectID,
+											bool * bDoesntFit)
 {
 	//	Number of bytes that have been written out.
 	uint8_t nBytesWritten = 0;
@@ -877,19 +884,31 @@ unsigned int ModbusFunction_AppendObject(	uint8_t * pBuffer,
 	if (MODBUS_EXCEPTION_OK == ModbusDataModel_ReadObjectID(nObjectID, NULL, 0, &nBytesToBeUsed))
 	{
 		//	Cool. Determine whether or not we can actually put this into the buffer.
-		if ( ((nBytesToBeUsed + 2) < nBytesLeft) && (pBuffer != NULL) )
+		if ( ((nBytesToBeUsed + 2) < nBytesLeft))
 		{
-			//	We can. Go ahead and do it.
-			pBuffer[0] = nObjectID;
-			pBuffer[1] = nBytesToBeUsed;
-			ModbusDataModel_ReadObjectID(nObjectID, &(pBuffer[2]), (nBytesLeft-2), &nBytesWritten);
+			//	Is the buffer defined?
+			if ((pBuffer != NULL))
+			{
+				//	We can. Go ahead and do it.
+				pBuffer[0] = nObjectID;
+				pBuffer[1] = nBytesToBeUsed;
+				ModbusDataModel_ReadObjectID(nObjectID, &(pBuffer[2]), (nBytesLeft-2), &nBytesWritten);
 
-			//	Account for the two bytes written at the beginning.
-			nBytesWritten += 2;
+				//	Account for the two bytes written at the beginning.
+				nBytesWritten += 2;
+			}
+		}
+		else
+		{
+			//	Uh-oh-- it doesn't fit.
+			if (bDoesntFit != NULL)
+			{
+				(*bDoesntFit) = true;
+			}
 		}
 	}
 
-	//	Fianlly, return the bytes that were truly written out.
+	//	Finally, return the bytes that were truly written out.
 	return nBytesWritten;
 }
 
@@ -942,69 +961,67 @@ ModbusException_T ModbusFunction_ReadDeviceIdentification(	uint8_t * pMbReqPDU, 
 		return eException;
 	}
 
+	//	We're going to begin to build the response.
+	//	Note that it's certainly possible for us to fail later-- that's okay,
+	//	as it'll be indicated by the eException value returned.
+	memset(pMbRspPDU, 0, nMbRspPDULen);
+	(*pMbRspPDUUsed) = 0;
+
+	//	Basically the "header" of all responses.
+	//	Some of these values will get changed later.
+	pMbRspPDU[0] = 0x2B;			//	Function Code
+	pMbRspPDU[1] = 0x0E;			//	MEI Type
+	pMbRspPDU[2] = pMbReqPDU[2];	//	Read Dev ID code
+	pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	(TODO: echos for now)
+	pMbRspPDU[4] = 0;				//	More follows flag (TODO: implement)
+	pMbRspPDU[5] = nObjectID;		//	Next Object ID
+	pMbRspPDU[6] = 0;				//	Number of objects
+	(*pMbRspPDUUsed) += 7;
+
+	//	Helper variables, for our loop.
+	int nObjectIDMax = 0;
+	int nObjectIDStart = nObjectID;
+	int nNumObjectsAdded = 0;
+
+	int nObjectIDRelativeCnt = 0;
+	
+	//	The list of Objects will start at [7]
+	uint8_t * pNextObject = &(pMbRspPDU[7]);
+	int nNumberOfBytesLeft = (int) (pMbRspPDU + nMbRspPDULen - &(pMbRspPDU[7]));
+
 	//	Check #3:	Read DeviceID Code OK
+	//	This determines the type of read of which we'd like to complete.
 	uint8_t nReadDevIDCode = (pMbReqPDU[2]);
 	switch (nReadDevIDCode)
 	{
+		//	Category:	Basic
 		case 0x01:
-			//	Basic identification
-			//	(stream access only)
 
-			//	Build response.
-			memset(pMbRspPDU, 0, nMbRspPDULen);
-			(*pMbRspPDUUsed) = 0;
+			//		ObjID	ObjName					ObjType
+			//		-----	-------					-------
+			//		0x00	VendorName				ASCII_String
+			//		0x01	ProductCode				ASCII_String
+			//		0x02	MajorMinorRevision		ASCII_String
 
-			pMbRspPDU[0] = 0x2B;			//	Function Code
-			pMbRspPDU[1] = 0x0E;			//	MEI Type
-			pMbRspPDU[2] = pMbReqPDU[2];	//	Read Dev ID code
-			pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	(TODO: echos for now)
-			pMbRspPDU[4] = 0;				//	More follows flag (TODO: implement)
-			pMbRspPDU[5] = nObjectID;		//	Next Object ID
-			pMbRspPDU[6] = 0;				//	Number of objects
-			(*pMbRspPDUUsed) += 7;
-
-			//	Loop
-			int nNumberOfObjects = 3;
-			int nCurrentObjectID = nObjectID;
-
-			//	The list of Objects will start at [7]
-			uint8_t * pNextObject = &(pMbRspPDU[7]);
-			int nNumberOfBytesLeft = (int) (pMbRspPDU + nMbRspPDULen - &(pMbRspPDU[7]));
-
-			while (nCurrentObjectID < nNumberOfObjects)
-			{
-				int nBytesAdded = ModbusFunction_AppendObject(pNextObject, nNumberOfBytesLeft, nCurrentObjectID);
-				if (nBytesAdded >= 0)
-				{
-					nCurrentObjectID += 1;
-					pNextObject += nBytesAdded;
-					(*pMbRspPDUUsed) += nBytesAdded;
-				}
-				else
-				{
-					eException = MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
-					break;
-				}
-			}
-
-			//	After we're done, write number of objects written
-			pMbRspPDU[6] = nCurrentObjectID;
-
-
-
+			//	We're required to return a set number of objects in this scenario.
+			//	This will *always* be the range of 0x00-0x02.
+			nObjectIDMax = 0x03;
 			break;
 		case 0x02:
 			//	Regular identification
 			//	(stream access only)
-			//	[NOT SUPPORTED]
+			nObjectIDMax = 0x80;
+			break;
 		case 0x03:
 			//	Extended identification
 			//	(stream access only)
-			//	[NOT SUPPORTED]
+			nObjectIDMax = 0xFF;
+			break;
 		case 0x04:
 			//	One specific identification object
 			//	(individual access only)
-			//	[NOT SUPPORTED]
+			nObjectIDMax = nObjectIDStart+1;
+			break;
 		default:
 			//	If the ReadDevID code is illegal, send back
 			//	an exception 0x03 response.
@@ -1012,10 +1029,54 @@ ModbusException_T ModbusFunction_ReadDeviceIdentification(	uint8_t * pMbReqPDU, 
 			break;
 	}
 
+	//	Primary loop, of which objects are inserted into the buffer
+	while (	(nObjectIDStart + nObjectIDRelativeCnt) < nObjectIDMax)
+	{
+		bool bDoesntFit = false;
+		int nBytesAdded = ModbusFunction_AppendObject(pNextObject, nNumberOfBytesLeft, (nObjectIDStart + nObjectIDRelativeCnt), &bDoesntFit);
+
+		//	Determine if we've reached a failure scenario.
+		//	And if so-- why?
+		if (nBytesAdded == 0)
+		{
+			//	Depends on the device ID that we've requested--
+			if ((nObjectIDStart + nObjectIDRelativeCnt) < 0x03)
+			{
+				eException = MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+				break;
+			}
+			else
+			{
+				//	Does this not fit?
+				if (bDoesntFit)
+				{
+					//	Oh yeah we're out of room, go ahead and terminate.
+					//	But this will be the next object.
+					pMbRspPDU[4] = 0xFF;						//	More follows flag (TODO: implement)
+					pMbRspPDU[5] = (nObjectIDStart + 			//	Next Object ID, pick up where we left off.
+									nObjectIDRelativeCnt);
+
+					//	Graceful break.
+					break;
+				}
+
+				//	It's certainly possible that this isn't implemented.
+				//	We can continue to move on.
+			}
+		}
+		else
+		{
+			nNumObjectsAdded += 1;
+			pNextObject += nBytesAdded;
+			(*pMbRspPDUUsed) += nBytesAdded;
+		}
+		nObjectIDRelativeCnt += 1;
 
 
+	}
 
-
+	//	After we're done, write number of objects written
+	pMbRspPDU[6] = nNumObjectsAdded;
 
 	return eException;
 }
