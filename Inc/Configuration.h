@@ -15,6 +15,19 @@
 #define START_BITS  (1)
 #define CHARACTER_BITS  (8)
 
+#include "Version.h"
+
+//	Static configuration variables
+#define TERM(T) T"\0"
+#define QUOTE(Q) #Q
+#define QUOTE_EXP(Q) QUOTE(Q)
+
+#define VENDOR_NAME		TERM("Bacharach")
+#define PRODUCT_CODE 	TERM("HMZ-RM1")
+#define MAJOR_MINOR_REV QUOTE_EXP(SOFTWARE_VERSION_MAJOR)"."\
+                        QUOTE_EXP(SOFTWARE_VERSION_MINOR)"."\
+                        QUOTE_EXP(SOFTWARE_VERSION_BUILD)"\0"
+
 /*
 	Structure:	ModbusConfiguration_T
 	Description:
@@ -89,5 +102,9 @@ uint16_t Configuration_GetControllerUID_1_2(void);
 uint16_t Configuration_GetControllerUID_3_4(void);
 uint16_t Configuration_GetControllerUID_5_6(void);
 uint16_t Configuration_GetControllerUID_7_8(void);
+
+bool Configuration_MB_VendorName(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
+bool Configuration_MB_ProductCode(uint8_t * pBuffer, uint8_t nBufferLen, uint16_t * nBufferUsed);
+bool Configuration_MB_MajorMinorRevision(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
 
 #endif /* CONFIGURATION_H_ */

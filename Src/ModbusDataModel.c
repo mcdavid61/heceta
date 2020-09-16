@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include "ModbusDataModel.h"
 #include "ModbusSlave.h"
 #include "Configuration.h"
@@ -271,4 +272,97 @@ ModbusException_T ModbusDataModel_ReadInputRegister(uint16_t nAddress, uint16_t 
 
 	return eReturn;
 }
+
+
+/*
+	Function:	ModbusDataModel_ReadObjectIDHelper_Str
+	Description:
+		Allows the caller to request data about a string-based object ID.
+		The boolean-based return value will return whether or not the data was written out
+		to the specified buffer.
+		The pBuffer and nBufferLen variables represent the destination buffer.
+		The *nBufferUsed variable represents a location where the number of bytes written out is saved.
+		Even if the other variables are NULL and/or if the function returns false, the number of bytes
+		that would have been written are still returned.
+*/
+bool ModbusDataModel_ReadObjectIDHelper_Str(uint8_t * pBuffer, int nBufferLen,	uint8_t * nBufferUsed, uint8_t * pStr)
+{
+	//	Return variable, to determine whether or not we could pull the string.
+	//	This variable will only be true if the string was returned.
+	bool bOK = false;
+
+	//	Determine how long the string is that we need to copy.
+	//	Whether or not the string is copied, as long as the nStr and nBufferUsed variables
+	//	are correctly passed, this string length will be returned regardless.
+	uint16_t nStrLen;
+	if (pStr != NULL)
+	{
+		nStrLen = strlen(pStr);
+	}
+
+	//	If the buffer is not NULL and the buffer length is large enough, go ahead
+	//	and copy the string into the buffer.
+	if (pBuffer != NULL && nBufferLen > 0 && (nBufferLen - nStrLen) > 0 && nStrLen > 0)
+	{
+		memcpy(pBuffer, pStr, nStrLen);
+		bOK = true;
+	}
+
+	//	If the buffer length used is requested to be returned, go ahead and return that.
+	//	Note that as long as this variable is set to something, the bytes that would have been
+	//	used is still returned.
+	if (nBufferUsed != NULL)
+	{
+		(*nBufferUsed) = nStrLen;
+	}
+
+	//	Finally, return whether or not the bytes were actually copied.
+	//	Yes, I'm aware this is kind of a weird function.
+	return bOK;
+}
+
+/*
+	Function:	ModbusDataModel_ReadObjectID
+	Description:
+		Attempts to read the Object ID as specified. If the pBuffer is null, it will simply
+		return the OK status if there is a valid way to acquire this Object ID.
+*/
+ModbusException_T ModbusDataModel_ReadObjectID(	uint16_t nObjectID,	uint8_t * pBuffer,
+																	int nBufferLen,
+																	uint8_t * nBufferUsed)
+{
+	//	The ModbusException_T to return.
+	//	For now, return the maximum value possible.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_UNKNOWN;
+
+	//	Holding values, to store the read/write functions.
+	//	These define the format of the functions.
+	uint8_t * pASCIIStr = NULL;
+
+	//	Using the header file, determine where we can read the ObjectID
+	//	requested. If we can, add it to the buffer.
+	switch(nObjectID)
+	{
+		FOREACH_OBJECT_ID(OBJECT_ID);
+		default:
+			break;
+	}
+
+	//	Determine if there's a valid response for this particular Object ID.
+	if (pASCIIStr != NULL)
+	{
+		//	There is.
+		//	Figure out what the appropriate response is.
+		ModbusDataModel_ReadObjectIDHelper_Str(pBuffer, nBufferLen, nBufferUsed, pASCIIStr);
+
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+	else
+	{
+		eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
+	}
+
+	return eReturn;
+}
+
 

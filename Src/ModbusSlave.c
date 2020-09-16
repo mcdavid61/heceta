@@ -857,6 +857,170 @@ ModbusException_T ModbusFunction_ReadRegisters(	uint8_t * pMbReqPDU, uint32_t nM
 }
 
 /*
+	Function:	ModbusFunction_AppendObject()
+	Description:
+		Given a buffer, its length, and a nObjectID, attempts to
+		add an object to the buffer in the format of
+			[nObjectID, nSize, aData].
+		If the object cannot fit or some other error occurs, 0 is returned.
+		Otherwise, the number of bytes written is returned.
+*/
+unsigned int ModbusFunction_AppendObject(	uint8_t * pBuffer,
+											int nBytesLeft,
+											uint8_t nObjectID)
+{
+	//	Number of bytes that have been written out.
+	uint8_t nBytesWritten = 0;
+	uint8_t nBytesToBeUsed = 0;
+
+	//	Can this object be read?
+	if (MODBUS_EXCEPTION_OK == ModbusDataModel_ReadObjectID(nObjectID, NULL, 0, &nBytesToBeUsed))
+	{
+		//	Cool. Determine whether or not we can actually put this into the buffer.
+		if ( ((nBytesToBeUsed + 2) < nBytesLeft) && (pBuffer != NULL) )
+		{
+			//	We can. Go ahead and do it.
+			pBuffer[0] = nObjectID;
+			pBuffer[1] = nBytesToBeUsed;
+			ModbusDataModel_ReadObjectID(nObjectID, &(pBuffer[2]), (nBytesLeft-2), &nBytesWritten);
+
+			//	Account for the two bytes written at the beginning.
+			nBytesWritten += 2;
+		}
+	}
+
+	//	Fianlly, return the bytes that were truly written out.
+	return nBytesWritten;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+	Function:	ModbusFunction_ReadDeviceIdentification
+	Description:
+		Device identification functions and subfunctions.
+		Note that this function will also require the MEI Type to be set to 14 (0x0E),
+		otherwise, it will return an illegal function exception.
+*/
+ModbusException_T ModbusFunction_ReadDeviceIdentification(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+	   	   													uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+															uint32_t * pMbRspPDUUsed)
+{
+	//	Storage for an exception response.
+	ModbusException_T eException;
+
+	//	Check #1:	MEI Type == 0x0E
+	//	If this isn't the correct MEI Type, this is effectively an
+	//	invalid function request, and as such, we'll report so.
+	uint8_t nMEIType = (pMbReqPDU[1]);
+	if (nMEIType != 0x0E)
+	{
+		eException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
+		return eException;
+	}
+
+	//	Check #2:	Object ID OK
+	//	Determine whether or not this Object ID exists
+	//	Note that this isn't the place where we'll do the actual
+	//	read-- there are more checks that need to be done.
+	uint8_t nObjectID = (pMbReqPDU[3]);
+
+
+	eException = ModbusDataModel_ReadObjectID(nObjectID, NULL, 0, NULL);
+	if (eException != MODBUS_EXCEPTION_OK)
+	{
+		//	This wasn't a valid Object ID.
+		//	Throw the exception that was raised by the function.
+		return eException;
+	}
+
+	//	Check #3:	Read DeviceID Code OK
+	uint8_t nReadDevIDCode = (pMbReqPDU[2]);
+	switch (nReadDevIDCode)
+	{
+		case 0x01:
+			//	Basic identification
+			//	(stream access only)
+
+			//	Build response.
+			memset(pMbRspPDU, 0, nMbRspPDULen);
+			(*pMbRspPDUUsed) = 0;
+
+			pMbRspPDU[0] = 0x2B;			//	Function Code
+			pMbRspPDU[1] = 0x0E;			//	MEI Type
+			pMbRspPDU[2] = pMbReqPDU[2];	//	Read Dev ID code
+			pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	(TODO: echos for now)
+			pMbRspPDU[4] = 0;				//	More follows flag (TODO: implement)
+			pMbRspPDU[5] = nObjectID;		//	Next Object ID
+			pMbRspPDU[6] = 0;				//	Number of objects
+			(*pMbRspPDUUsed) += 7;
+
+			//	Loop
+			int nNumberOfObjects = 3;
+			int nCurrentObjectID = nObjectID;
+
+			//	The list of Objects will start at [7]
+			uint8_t * pNextObject = &(pMbRspPDU[7]);
+			int nNumberOfBytesLeft = (int) (pMbRspPDU + nMbRspPDULen - &(pMbRspPDU[7]));
+
+			while (nCurrentObjectID < nNumberOfObjects)
+			{
+				int nBytesAdded = ModbusFunction_AppendObject(pNextObject, nNumberOfBytesLeft, nCurrentObjectID);
+				if (nBytesAdded >= 0)
+				{
+					nCurrentObjectID += 1;
+					pNextObject += nBytesAdded;
+					(*pMbRspPDUUsed) += nBytesAdded;
+				}
+				else
+				{
+					eException = MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+					break;
+				}
+			}
+
+			//	After we're done, write number of objects written
+			pMbRspPDU[6] = nCurrentObjectID;
+
+
+
+			break;
+		case 0x02:
+			//	Regular identification
+			//	(stream access only)
+			//	[NOT SUPPORTED]
+		case 0x03:
+			//	Extended identification
+			//	(stream access only)
+			//	[NOT SUPPORTED]
+		case 0x04:
+			//	One specific identification object
+			//	(individual access only)
+			//	[NOT SUPPORTED]
+		default:
+			//	If the ReadDevID code is illegal, send back
+			//	an exception 0x03 response.
+			eException = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+			break;
+	}
+
+
+
+
+
+
+	return eException;
+}
+
+/*
 	Function:	ModbusSlave_BuildFrame
 	Description:
 		Build a complete, valid Modbus frame that can be sent out.
@@ -996,6 +1160,11 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 																&nMbRspPDUUsed,
 																ModbusDataModel_WriteHoldingRegister);
 			break;
+		case 0x2B:
+			eMbException = ModbusFunction_ReadDeviceIdentification(	pMbReqPDU,	nMbReqPDULen,
+																	pMbRspPDU,	nMbRspPDULen,
+																	&nMbRspPDUUsed);
+			break;
 		default:
 			eMbException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
 			break;
@@ -1093,11 +1262,6 @@ void ModbusSlave_Process(void)
 
 					//	Attempt to send.
 					bSent = ModbusSlave_PrepareForOutput(m_aModbusSlaveOutputBuffer, m_nModbusSlaveOutputBufferPos);
-					if (bSent)
-					{
-						printf("response sent");
-					}
-
 					m_eModbusSlaveState = MODBUS_SLAVE_SEND_WAIT;
 				}
 				else

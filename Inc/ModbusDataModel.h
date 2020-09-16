@@ -68,9 +68,26 @@
 	COIL(04102, "Clear Last Faults", 	NULL, NULL) \
 	//	To be continued.
 
+#define OBJECT_ID(id, str, ascii, write) \
+	case id: \
+		pASCIIStr = (uint8_t *) ascii; \
+		break;
+#define FOREACH_OBJECT_ID(OBJECT_ID) \
+	/*			ID		Identifier String			String Ptr,				Func Ptr*/\
+	OBJECT_ID(	0x00, "VendorName",	 				VENDOR_NAME,			NULL) \
+	OBJECT_ID(	0x01, "ProductCode",	 			PRODUCT_CODE,			NULL) \
+	OBJECT_ID(	0x02, "MajorMinorRevision",	 		MAJOR_MINOR_REV,		NULL) \
+
+	//	To be continued.
+
+
+
 bool ModbusDataModel_ReadCoil(uint16_t nAddress, bool * bReturn);
 ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_t * nReturn);
 ModbusException_T ModbusDataModel_ReadInputRegister(uint16_t nAddress, uint16_t * nReturn);
+ModbusException_T ModbusDataModel_ReadObjectID(	uint16_t nObjectID,	uint8_t * pBuffer,
+																	int nBufferLen,
+																	uint8_t * nBufferUsed);
 ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16_t * nValue);
 
 #endif /* MODBUSINTERFACE_H_ */
