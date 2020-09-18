@@ -38,6 +38,8 @@ void Relay_Process(void)
 	volatile uint32_t nFaultRead = 0;
 	nFaultRead = DRV8860_FaultRead();
 
+	volatile uint16_t nRelayState = 0;
+	nRelayState = DRV8860_DataRegisterRead();
 
 	static	uint32_t	relayTick=0;
 

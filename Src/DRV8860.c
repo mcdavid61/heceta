@@ -47,6 +47,130 @@ void DRV8860_DataWrite(uint16_t nPattern)
 }
 
 /*
+	Function:	DRV8860_DataRegisterRead
+	Description:
+		Performs a Data Register Read operation.
+*/
+uint16_t DRV8860_DataRegisterRead()
+{
+	//	Counter
+	int cnt;
+
+	//	Value to return
+	uint16_t nDataRead = 0;
+
+	//	For this particular operation, we'll need to send a pattern of
+	//	latch and clock commands. This will cause the relay chips to go
+	//	into a different read mode.
+
+	//	Clock down
+	DRV8860_PIN_CLK(0);
+	delay_us(3);
+
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(1);
+
+	//	Clock pulse
+	DRV8860_PIN_CLK(1);
+	delay_us(3);
+	DRV8860_PIN_CLK(0);
+	delay_us(3);
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(1);
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(1);
+
+	//	Clock pulse x 4
+	for (cnt = 0; cnt < 4; cnt++)
+	{
+		//	Clock pulse
+		DRV8860_PIN_CLK(1);
+		delay_us(3);
+		DRV8860_PIN_CLK(0);
+		delay_us(3);
+	}
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(1);
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(1);
+
+	//	Clock pulse x 4
+	for (cnt = 0; cnt < 4; cnt++)
+	{
+		//	Clock pulse
+		DRV8860_PIN_CLK(1);
+		delay_us(3);
+		DRV8860_PIN_CLK(0);
+		delay_us(3);
+	}
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(1);
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(1);
+
+	//	Clock pulse x 3
+	for (cnt = 0; cnt < 3; cnt++)
+	{
+		//	Clock pulse
+		DRV8860_PIN_CLK(1);
+		delay_us(3);
+		DRV8860_PIN_CLK(0);
+		delay_us(3);
+	}
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(1);
+
+
+	//	Begin to clock in data.
+	uint8_t nBitCount = 0;
+	while (nBitCount < 16)
+	{
+
+		//	Upon the falling edge of the clock, we'll be able to read in the fault data.
+		//	Wait one usec for that-- and then attempt to read the data coming out.
+		//	This is written in such a way that it also passes the output through on read.
+		bool bIncomingBit = DRV8860_PIN_DIN();
+		nDataRead = (nDataRead << 1) | bIncomingBit;
+
+		//	Clock Up
+		DRV8860_PIN_CLK(1);
+		delay_us(3);
+
+		//	Clock down
+		DRV8860_PIN_CLK(0);
+		delay_us(3);
+
+		//	Increase the bit count
+		nBitCount++;
+	}
+
+	return nDataRead;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 	Function:	DRV8860_FaultRead
 	Description:
 		Performs a Fault Read operation.
@@ -109,6 +233,7 @@ uint32_t DRV8860_FaultRead()
 	DRV8860_PIN_CLK(1);
 	delay_us(3);
 
+	return nDataRead;
 }
 
 void DRV8860_Update_Driver_Output(uint16_t pattern)

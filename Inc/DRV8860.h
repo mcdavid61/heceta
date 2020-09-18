@@ -38,7 +38,7 @@
 
 
 
-
+uint16_t DRV8860_DataRegisterRead();
 uint32_t DRV8860_FaultRead();
 void DRV8860_Update_Driver_Output(uint16_t pattern);
 
