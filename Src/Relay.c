@@ -34,6 +34,11 @@ _Bool commRelay = FALSE;
 
 void Relay_Process(void)
 {
+
+	volatile uint32_t nFaultRead = 0;
+	nFaultRead = DRV8860_FaultRead();
+
+
 	static	uint32_t	relayTick=0;
 
 	if (TRUE == toggleFlag)

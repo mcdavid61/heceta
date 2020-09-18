@@ -15,6 +15,10 @@
 #define RELAY_DEBUG_DOUT_Pin LED_RED_Pin
 #define RELAY_DEBUG_DOUT_GPIO_Port LED_RED_GPIO_Port
 
+#define RELAY_DEBUG_DIN_PASSTHROUGH_Pin	LED_AMBER_Pin
+#define RELAY_DEBUG_DIN_PASSTHROUGH_GPIO_Port	LED_AMBER_GPIO_Port
+
+
 //	Macros to set pins simultaneously
 #define DRV8860_PIN_CLK(B) \
 	HAL_GPIO_WritePin(RELAY_DEBUG_CLK_GPIO_Port, RELAY_DEBUG_CLK_Pin, B); \
@@ -25,6 +29,9 @@
 #define DRV8860_PIN_DOUT(B) \
 	HAL_GPIO_WritePin(RELAY_DEBUG_DOUT_GPIO_Port, RELAY_DEBUG_DOUT_Pin, B); \
 	HAL_GPIO_WritePin(R_DOUT_GPIO_Port, R_DOUT_Pin, B)
+#define DRV8860_PIN_DIN() \
+	HAL_GPIO_ReadPin(R_DIN_GPIO_Port, R_DIN_Pin); \
+	HAL_GPIO_WritePin(RELAY_DEBUG_DIN_PASSTHROUGH_GPIO_Port, RELAY_DEBUG_DIN_PASSTHROUGH_Pin, (HAL_GPIO_ReadPin(R_DIN_GPIO_Port, R_DIN_Pin)))
 
 
 
@@ -32,7 +39,7 @@
 
 
 
-
+uint32_t DRV8860_FaultRead();
 void DRV8860_Update_Driver_Output(uint16_t pattern);
 
 #endif// ifndef _DRV8860_H_

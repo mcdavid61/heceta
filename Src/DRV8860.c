@@ -22,8 +22,6 @@ void DRV8860_DataWrite(uint16_t nPattern)
 {
 	//	Latch down
 	DRV8860_PIN_LAT(0);
-	//	Clock down
-	DRV8860_PIN_CLK(0);
 
 	//	Begin to clock in data.
 	uint8_t nBitCount = 0;
@@ -46,7 +44,70 @@ void DRV8860_DataWrite(uint16_t nPattern)
 	DRV8860_PIN_CLK(1);
 	//	Latch up
 	DRV8860_PIN_LAT(1);
+}
 
+/*
+	Function:	DRV8860_FaultRead
+	Description:
+		Performs a Fault Read operation.
+*/
+uint32_t DRV8860_FaultRead()
+{
+	//	Value to return
+	uint32_t nDataRead;
+
+	//	For this particular operation, we'll need to send a pattern of
+	//	latch and clock commands. This will cause the relay chips to go
+	//	into a different read mode.
+
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(1);
+
+	//	Clock down
+	DRV8860_PIN_CLK(0);
+	delay_us(1);
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(2);
+
+	//	Begin to clock in data.
+	uint8_t nBitCount = 0;
+	while (nBitCount < 32)
+	{
+		//	Clock Up
+		DRV8860_PIN_CLK(1);
+		delay_us(3);
+
+		//	Clock down
+		DRV8860_PIN_CLK(0);
+		delay_us(1);
+
+		//	Upon the falling edge of the clock, we'll be able to read in the fault data.
+		//	Wait one usec for that-- and then attempt to read the data coming out.
+		//	This is written in such a way that it also passes the output through on read.
+		bool bIncomingBit = DRV8860_PIN_DIN();
+		nDataRead = (nDataRead << 1) | bIncomingBit;
+
+		//	Rest of the clock cycle gap
+		delay_us(2);
+
+		//	Increase the bit count
+		nBitCount++;
+	}
+
+	//	Latch down
+	DRV8860_PIN_LAT(0);
+	delay_us(3);
+
+	//	Latch up
+	DRV8860_PIN_LAT(1);
+	delay_us(1);
+
+	//	Clock Up
+	DRV8860_PIN_CLK(1);
+	delay_us(3);
 
 }
 
