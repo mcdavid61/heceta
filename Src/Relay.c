@@ -24,6 +24,13 @@ uint16_t relayPattern = 0;
 _Bool	toggleFlag = FALSE;
 _Bool commRelay = FALSE;
 
+/*
+	Function:	Relay_Process()
+	Description:
+		The following is a new
+*/
+
+
 
 void Relay_Process(void)
 {
@@ -67,6 +74,7 @@ void Relay_Run_Demo()
 
 bool Relay_Set_Relay(uint16_t relay)
 {
+	//	Test commit
 	relayPattern = relay;
 	toggleFlag = FALSE;
 	return true;

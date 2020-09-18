@@ -26,6 +26,10 @@
 
 void LED_Process(void)
 {
+	//	Stubbed out for the purpose of RELAY debugging on the SPI3 header
+	//	TODO:	Un-stub this out so that the LEDs work as intended.
+
+	/*
 	//	There are two configurations for the LEDs
 	//	-	Regular Mode
 	//			Aka, this is the mode that the system normally runs in.
@@ -59,6 +63,8 @@ void LED_Process(void)
 			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 		}
 	}
+	*/
+
 }
 
 /*************************** END OF FILE **************************************/
