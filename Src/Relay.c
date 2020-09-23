@@ -40,17 +40,22 @@ static RelayState_T m_eRelayState = RELAY_INIT;
 //			an adjustment?
 //			Do we want to constantly bitbang the DR register output for each cycle?
 //			Is it enough to verify that the DR remains consistent during the verification step.
-static DRV8860_DataRegister_T m_aDR[DRV8860_CNT] = {0xF0, 0x0F};
-static DRV8860_ControlRegister_T m_aCR[DRV8860_CNT] = {0xA, 0xB};
+static DRV8860_DataRegister_T m_aDR[DRV8860_CNT] = {0};
+static DRV8860_ControlRegister_T m_aCR[DRV8860_CNT] = {0};
 
 //	Verify registers.
 //	This is where we'll restore the actual state of things.
-DRV8860_ControlRegister_T m_aCRVerify[DRV8860_CNT];
-DRV8860_DataRegister_T m_aDRVerify[DRV8860_CNT];
+DRV8860_ControlRegister_T m_aCRVerify[DRV8860_CNT] = {0};
+DRV8860_DataRegister_T m_aDRVerify[DRV8860_CNT] = {0};
 
 static uint8_t m_nFaultCounter = 0;
 
 
+/*
+	Function:	Relay_Set()
+	Description:
+		Sets the relay values, given a 16-bit pattern.
+*/
 bool Relay_Set(uint16_t nPattern)
 {
 	//	This code will take the a 16-bit pattern, and place it in the correct
@@ -65,17 +70,6 @@ bool Relay_Set(uint16_t nPattern)
 	return true;
 }
 
-
-
-
-
-
-
-
-
-
-
-
 /*
 	Function:	Relay_Process()
 	Description:
@@ -84,8 +78,6 @@ bool Relay_Set(uint16_t nPattern)
 */
 void Relay_Process(void)
 {
-
-
 	switch(m_eRelayState)
 	{
 		case RELAY_INIT:
@@ -139,22 +131,12 @@ void Relay_Process(void)
 			m_eRelayState = RELAY_INIT;
 			break;
 	}
-
-	return;
 }
 
 void Relay_Run_Demo()
 {
 	relayPattern = 1;
 	toggleFlag = TRUE;
-}
-
-bool Relay_Set_Relay(uint16_t relay)
-{
-	//	Test commit
-	relayPattern = relay;
-	toggleFlag = FALSE;
-	return true;
 }
 
 uint16_t Relay_Get(void)

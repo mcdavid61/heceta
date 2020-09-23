@@ -93,41 +93,6 @@ void DRV8860_SpecialCommandPulse(uint8_t nPulsePart2, uint8_t nPulsePart3, uint8
 	delay_us(1);
 }
 
-
-
-/*
-	Function:	DRV8860_DataWrite
-	Description:
-		Performs a Data Write operation.
-*/
-void DRV8860_DataWrite(uint16_t nPattern)
-{
-	//	Latch down
-	DRV8860_PIN_LAT(0);
-
-	//	Begin to clock in data.
-	uint8_t nBitCount = 0;
-	while (nBitCount < 16)
-	{
-		DRV8860_PIN_DOUT(!!(nPattern & 0x8000));
-		DRV8860_PIN_CLK(0);
-		delay_us(3);
-		DRV8860_PIN_CLK(1);
-		delay_us(3);
-
-		nPattern = (nPattern << 1);
-		nBitCount++;
-	}
-
-	//	Data clocked in.
-	delay_us(3);
-
-	//	Clock up
-	DRV8860_PIN_CLK(1);
-	//	Latch up
-	DRV8860_PIN_LAT(1);
-}
-
 /*
 	Function:	DRV8860_DataRegisterWrite
 	Description:
@@ -183,7 +148,6 @@ void DRV8860_DataRegisterWrite(DRV8860_DataRegister_T * aWrite, uint8_t nDevCoun
 	DRV8860_PIN_LAT(1);
 	delay_us(1);
 }
-
 
 /*
 	Function:	DRV8860_ControlRegisterWrite
@@ -337,83 +301,6 @@ void DRV8860_DataRegisterRead(DRV8860_DataRegister_T * aRead, uint8_t nDevCount)
 		//	Decrease the dev count.
 		nDevCntr--;
 	}
-}
-
-
-
-
-/*
-	Function:	DRV8860_FaultRegisterRead
-	Description:
-		Performs a Fault Register Read operation.
-*/
-void DRV8860_FaultRegisterRead(DRV8860_FaultRegister_T * aRead, uint8_t nDevCount)
-{
-	//	For this particular operation, we'll need to send a pattern of
-	//	latch and clock commands. This will cause the relay chips to go
-	//	into a different read mode.
-
-	//	DEBUG:
-	//	Turn the data output line high
-	DRV8860_PIN_DOUT(1);
-
-	//	Latch down
-	DRV8860_PIN_LAT(0);
-	delay_us(1);
-
-	//	Latch up
-	DRV8860_PIN_LAT(1);
-	delay_us(1);
-
-	//	Clock down
-	DRV8860_PIN_CLK(0);
-	delay_us(6);
-
-	//	This shouldn't mean anything to us.. but I want to
-	//	try this anyways.
-	//	Let's go ahead and update the DIN PASSTHROUGH pin before
-	//	clocking out data. Does the value change?
-	DRV8860_PIN_DIN();
-
-	//	Begin to clock out data-- depending on the number of devices we're writing out to.
-	uint8_t nDevCntr = nDevCount;
-
-	while (nDevCntr > 0)
-	{
-		//	Begin to clock out data.
-		//	Remember--data clocked out on FALLING EDGE of the clock.
-		uint8_t nBitCount = (sizeof(DRV8860_FaultRegister_T) * 8);
-		while (nBitCount > 0)
-		{
-			//	Upon the falling edge of the clock, we'll be able to read in the fault data.
-			//	Wait one usec for that-- and then attempt to read the data coming out.
-			//	This is written in such a way that it also passes the output through on read.
-			bool bIncomingBit = DRV8860_PIN_DIN();
-			aRead[nDevCntr-1] = (aRead[nDevCntr-1] << 1) | bIncomingBit;
-
-			//	Clock Up
-			DRV8860_PIN_CLK(1);
-			delay_us(3);
-
-			//	Clock down
-			DRV8860_PIN_CLK(0);
-			delay_us(3);
-
-			//	Decrease the bit count
-			nBitCount--;
-		}
-
-		//	Decrease the dev count.
-		nDevCntr--;
-	}
-
-	//	Latch down
-	DRV8860_PIN_LAT(0);
-	delay_us(3);
-
-	//	Latch up
-	DRV8860_PIN_LAT(1);
-	delay_us(3);
 }
 
 

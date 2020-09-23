@@ -7,6 +7,7 @@
 //	The following macros are defined in such a way
 //	to allow the debugging pins to mirror the output
 //	being sent to the DRV8860.
+#ifdef DEBUG_USE_J19_HEADER_AS_RELAY_OUTPUT
 
 #define RELAY_DEBUG_LATCH_Pin SPI3_CS_Pin
 #define RELAY_DEBUG_LATCH_GPIO_Port SPI3_CS_GPIO_Port
@@ -18,30 +19,50 @@
 #define RELAY_DEBUG_DIN_PASSTHROUGH_Pin	LED_AMBER_Pin
 #define RELAY_DEBUG_DIN_PASSTHROUGH_GPIO_Port	LED_AMBER_GPIO_Port
 
+#define DRV8860_PIN_PASSTHROUGH() \
+	HAL_GPIO_WritePin(RELAY_DEBUG_DIN_PASSTHROUGH_GPIO_Port, RELAY_DEBUG_DIN_PASSTHROUGH_Pin, (HAL_GPIO_ReadPin(R_DIN_GPIO_Port, R_DIN_Pin)))
+#define DRV8860_PIN_CLK_DBG(B) \
+	HAL_GPIO_WritePin(RELAY_DEBUG_CLK_GPIO_Port, RELAY_DEBUG_CLK_Pin, B); \
+	DRV8860_PIN_PASSTHROUGH();
+#define DRV8860_PIN_LAT_DBG(B) \
+	HAL_GPIO_WritePin(RELAY_DEBUG_LATCH_GPIO_Port, RELAY_DEBUG_LATCH_Pin, B); \
+	DRV8860_PIN_PASSTHROUGH();
+#define DRV8860_PIN_DOUT_DBG(B) \
+	HAL_GPIO_WritePin(RELAY_DEBUG_DOUT_GPIO_Port, RELAY_DEBUG_DOUT_Pin, B); \
+	DRV8860_PIN_PASSTHROUGH();
+#define DRV8860_PIN_DIN_DBG() \
+	DRV8860_PIN_PASSTHROUGH();
+#define DRV8860_PIN_FLT_DBG() \
+	DRV8860_PIN_PASSTHROUGH();
+#else
 
+//	If these macros are in use, debugging is entirely disabled.
+#define DRV8860_PIN_CLK_DBG(B)
+#define DRV8860_PIN_LAT_DBG(B)
+#define DRV8860_PIN_DOUT_DBG(B)
+#define DRV8860_PIN_DIN_DBG()
+#define DRV8860_PIN_FLT_DBG()
+
+#endif
 
 
 //	Macros to set pins simultaneously
-#define DRV8860_PIN_PASSTHROUGH() \
-	HAL_GPIO_WritePin(RELAY_DEBUG_DIN_PASSTHROUGH_GPIO_Port, RELAY_DEBUG_DIN_PASSTHROUGH_Pin, (HAL_GPIO_ReadPin(R_DIN_GPIO_Port, R_DIN_Pin)))
 #define DRV8860_PIN_CLK(B) \
-	HAL_GPIO_WritePin(RELAY_DEBUG_CLK_GPIO_Port, RELAY_DEBUG_CLK_Pin, B); \
 	HAL_GPIO_WritePin(R_CLK_GPIO_Port, R_CLK_Pin, B); \
-	DRV8860_PIN_PASSTHROUGH()
+	DRV8860_PIN_CLK_DBG(B)
 #define DRV8860_PIN_LAT(B) \
-	HAL_GPIO_WritePin(RELAY_DEBUG_LATCH_GPIO_Port, RELAY_DEBUG_LATCH_Pin, B); \
 	HAL_GPIO_WritePin(R_LAT_GPIO_Port, R_LAT_Pin, B); \
-	DRV8860_PIN_PASSTHROUGH()
+	DRV8860_PIN_LAT_DBG(B)
 #define DRV8860_PIN_DOUT(B) \
-	HAL_GPIO_WritePin(RELAY_DEBUG_DOUT_GPIO_Port, RELAY_DEBUG_DOUT_Pin, B); \
 	HAL_GPIO_WritePin(R_DOUT_GPIO_Port, R_DOUT_Pin, B); \
-	DRV8860_PIN_PASSTHROUGH()
+	DRV8860_PIN_DOUT_DBG(B)
 #define DRV8860_PIN_DIN() \
 	HAL_GPIO_ReadPin(R_DIN_GPIO_Port, R_DIN_Pin); \
-	DRV8860_PIN_PASSTHROUGH()
-
+	DRV8860_PIN_DIN_DBG()
 #define DRV8860_PIN_FLT() \
-	HAL_GPIO_ReadPin(R_FLT_GPIO_Port, R_FLT_Pin)
+	HAL_GPIO_ReadPin(R_FLT_GPIO_Port, R_FLT_Pin); \
+	DRV8860_PIN_FLT_DBG()
+
 
 #define DRV8860_CR_OAEN  	(1 << 7)
 #define DRV8860_CR_PWNC2  	(1 << 6)
@@ -76,16 +97,10 @@ typedef uint16_t DRV8860_FaultRegister_T;
 typedef uint8_t DRV8860_DataRegister_T;
 typedef uint8_t DRV8860_ControlRegister_T;
 
-
-
-uint32_t DRV8860_FaultRead(void);
-
 void DRV8860_ControlRegisterWrite(DRV8860_ControlRegister_T * aWrite, uint8_t nDevCount);
 void DRV8860_DataRegisterWrite(DRV8860_DataRegister_T * aWrite, uint8_t nDevCount);
-
-void DRV8860_DataRegisterRead(DRV8860_DataRegister_T * aRead, uint8_t nDevCount);
-void DRV8860_FaultRegisterRead(DRV8860_FaultRegister_T * aRead, uint8_t nDevCount);
 void DRV8860_ControlRegisterRead(DRV8860_ControlRegister_T * aRead, uint8_t nDevCount);
+void DRV8860_DataRegisterRead(DRV8860_DataRegister_T * aRead, uint8_t nDevCount);
 
 void DRV8860_Update_Driver_Output(uint16_t nPattern);
 
