@@ -19,11 +19,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define DRV8860_CNT (2)
+
+bool Relay_Set(uint16_t nPattern);
 void Relay_Process(void);
-bool Relay_Set_Relay(uint16_t relay);
-uint16_t Relay_Get_Relay(void);
+uint16_t Relay_Get(void);
 void Relay_Run_Demo();
 void Relay_Set_CommRelay(_Bool state);
+
 
 
 #endif /* _RELAY_H_ */

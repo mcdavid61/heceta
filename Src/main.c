@@ -649,12 +649,19 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, R_LAT_Pin|R_CLK_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : R_DOUT_Pin USART3_CS_Pin EE_CS_Pin RS485_DE_Pin */
-  GPIO_InitStruct.Pin = R_DOUT_Pin|USART3_CS_Pin|EE_CS_Pin|RS485_DE_Pin;
+  /*Configure GPIO pins : R_DOUT_Pin EE_CS_Pin RS485_DE_Pin */
+  GPIO_InitStruct.Pin = R_DOUT_Pin|EE_CS_Pin|RS485_DE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USART3_CS_Pin */
+  GPIO_InitStruct.Pin = USART3_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(USART3_CS_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SW1_Pin SW2_Pin SW3_Pin SW4_Pin
                            SW5_Pin SW6_Pin SW7_Pin SW8_Pin */
