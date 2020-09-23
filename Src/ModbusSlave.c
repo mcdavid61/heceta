@@ -568,155 +568,234 @@ bool ModbusSlave_CollectInput(uint8_t * pBuff, uint32_t nBufferLen, uint32_t * p
     return bModbusCommandFound;
 }
 
-
 /*
-	Function:	ModbusFunction_ReadCoilStatus()
+	Function:	ModbusFunction_Exception()
 	Description:
-		Read coil status function, implemented as specified in
-		Modbus Specification Protocol V1.1B
+		Given the MODBUS Request PDU, generate an exception response.
+		Should always return MODBUS_EXCEPTION_OK, but if it doesn't,
+		something has gone terribly wrong.
 */
-void ModbusFunction_ReadCoilStatus(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
-		   	   	   	   	   	   	   uint8_t * pOutputBuffer, uint32_t nOutputBufferLen,
-								   uint32_t * pOutputBufferLenUsed)
+ModbusException_T ModbusFunction_Exception(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+		   	   	   	   	   	   	   	   		uint8_t * pMbExcepRspPDU, uint32_t nMbExcepRspPDULen,
+											uint32_t * pMbExcepRspPDUUsed, ModbusException_T eException)
 {
-	//	Note that this is the raw pInputBuffer, meaning that
-	//	the slave address is stored in byte 0.
-	//	The beginning of the Modbus request PDU, or mb_req_pdu,
-	//	starts at byte 1.
-	const uint8_t * pMbReqPDU = &pInputBuffer[1];
+	//	Memset the entirety of the exception response.
+	memset(pMbExcepRspPDU, 0, nMbExcepRspPDULen);
 
-	//	Check #1:	Function code supported.
-	//	Since this ModbusFunction() was called, we're assuming that this passed.
+	//	Write the values out to the pMbExcepRspPDU
+	pMbExcepRspPDU[0] = pMbReqPDU[0] | 0x80;
+	pMbExcepRspPDU[1] = eException;
+	(*pMbExcepRspPDUUsed) = 2;
 
-	//	Check #2:	0x0001 <= Quantity of Outputs <= 0x07D0
-	//	We need to ensure we didn't call too many or too few outputs.
-	//	Quantity of outputs defined in byte 3 (upper) and 4 (lower)
-	//	of mb_req_pdu.
-	uint32_t nNumberOfCoils = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
-
-	if (nNumberOfCoils < 1 && nNumberOfCoils > 0x07D0)
-	{
-		//	We've exceed the bounds of the permitted quantity of outputs.
-		//	Generate an exception response.
-
-		//ModbusFunction_GenerateExceptionResponse(pOutputBuffer, pOutputBufferLen, nFunctionCode, nExceptionCode);
-	}
-
-	//	Check #3:	Starting address == OK
-	//				Starting Address + Quantity of Outputs == OK
-	//	As defined by the MODBUS Application Protocol Specification V1.1b,
-	//	a failure here should throw an exception code 02, illegal data address.
-	//	I would argue that any failure here (e.g. a request for a register that
-	//	isn't defined in our data model) should also return the 02 exception code.
-
-	//	Check #4:	ReadDiscreteOutputs == OK
-	//	When we called all of our READ functions for the coils requested, did they run correctly?
-
-	//	Time to build our response.
-
-	//	Ensure that the entirety of the output buffer is memset() to 0
-	memset(pOutputBuffer, 0, nOutputBufferLen);
-
-	//	Address field (which Modbus slave is responding)
-	pOutputBuffer[0] = Configuration_GetModbusAddress();
-
-	//	Response PDU
-	uint8_t * pMbRespPDU = &pOutputBuffer[1];
-
-	//	Function field
-	pMbRespPDU[0] = 0x01;
-
-	//	Byte Count
-	//	To be filled in later.
-	pMbRespPDU[1] = (nNumberOfCoils / 8) + !!(nNumberOfCoils % 8 != 0);
-
-	//	Start inserting the requested registers into the output buffer.
-	uint32_t nStartAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
-
-	//	A relative register counter-- how many registers
-	//	have been read in to return their status?
-	uint16_t nRelativeCoilCounter = 0;
-
-	//	Exception response?
-	bool bException = false;
-
-	while ( nRelativeCoilCounter < nNumberOfCoils)
-	{
-		//	Current address
-		uint32_t nCurrentAddress = (nStartAddress + nRelativeCoilCounter);
-
-		//	Attempt to read the value
-		bool bValue;
-		bool bSuccess;
-
-		bSuccess = ModbusDataModel_ReadCoil(nCurrentAddress, &bValue);
-
-		if (bSuccess)
-		{
-			//	This coil was able to be read.
-			//	Insert this into the output.
-			pMbRespPDU[2 + (nRelativeCoilCounter/8)] |= bValue << (nRelativeCoilCounter % 8);
-		}
-		else
-		{
-			//	This coil wasn't able to be read.
-			//	Generate the exception response, and break out of the loop.
-			//	TODO:	Figure out the best way to transition to this.
-			break;
-		}
-
-		nRelativeCoilCounter++;
-	}
-
-	if (bException)
-	{
-		//	Handle code
-		//ModbusFunction_GenerateExceptionResponse(pOutputBuffer, pOutputBufferLen, nFunctionCode, nExceptionCode);
-	}
-	else
-	{
-		//	We read all coils, good to return.
-		//	Where do we need to put the CRC?
-		//						SLAVE ADDR 	+ FUNCTION CODE	+ #BYTES 	+ VARIABLE BYTES
-		uint32_t nCRCLocation = 1 			+ 1 			+ 1 		+ pMbRespPDU[1];
-
-
-	}
-
-
-
-
-
-	//	Ultimately, I'm going to tie the request processing of the following checks together:
-	//	-	Starting Address == OK
-	//	-	Starting Address + Quantity of Outputs == OK
-	//		-->	Effectively translates to every single requested register is a readable register
-	//		-->	If we encounter a register that isn't readable (e.g. NULL read function),
-	//			then 0x02 (ILLEGAL DATA ADDRESS) is thrown.
-	//		-->	If something goes wrong in the processing of a read function,
-	//			then 0x04 (SLAVE DEVICE FAILURE) is thrown.
-
+	return MODBUS_EXCEPTION_OK;
 
 }
 
-
 /*
-	Function:	ModbusFunction_ReadHoldingRegisters()
+	Function:	ModbusFunction_WriteRegisters()
 	Description:
 		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
 		Returns zero (no exception) upon success. Returns a
 		non-zero value representing the error code upon failure.
 */
-ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
-		   	   	   	   	   	   	   	   			uint8_t * pMbRespPDU, uint32_t nMbRespPDULen,
-												uint32_t * pMbRespPDUUsed)
+ModbusException_T ModbusFunction_WriteRegisters(		uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+		   	   	   	   	   	   	   	   					uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+														uint32_t * pMbRspPDUUsed,
+														ModbusException_T (*pRegisterWrite)(uint16_t nAddress, uint16_t * nValue))
+{
+	//	Check #1:	0x0001 <= Quantity of Outputs <= 0x07D0
+	//								AND
+	//	Check #2:	Byte Count == Quantity of Registers * 2
+	//	We need to ensure we didn't call too many or too few outputs.
+	//	Quantity of outputs defined in byte 3 (upper) and 4 (lower)
+	//	of mb_req_pdu.
+	//
+	//	Additionally, we need to ensure we've received
+	//	enough bytes from the beginning to do this write.
+	uint32_t nNumberOfRegisters = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
+	uint32_t nNumberOfBytes = (pMbReqPDU[5]);
+	if (nNumberOfRegisters < 1 || nNumberOfRegisters > 0x007B
+			|| (nNumberOfRegisters * 2) != nNumberOfBytes)
+	{
+		return MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+	}
+
+	//	Check #3:	Starting Address == OK
+	//						AND
+	//	Check #4:	Starting Address + Quantity of Registers == OK
+	//	Check to ensure that the registers requested are valid registers
+	//	that can be written to.
+	//	NOTE:	I have adjusted this function slightly-- not only does it
+	//			check the starting and ending register, it also checks every
+	//			single register in between.
+
+	uint32_t nStartAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
+	uint16_t nRelativeRegisterCounter = 0;
+	while ( nRelativeRegisterCounter < nNumberOfRegisters)
+	{
+		//	Current address
+		uint32_t nCurrentAddress = (nStartAddress + nRelativeRegisterCounter);
+
+		//	Attempt to write a "NULL" value.
+		//	This effectively does nothing,
+		ModbusException_T eException;
+
+		eException = pRegisterWrite(nCurrentAddress, NULL);
+		if (eException == MODBUS_EXCEPTION_OK)
+		{
+			nRelativeRegisterCounter++;
+		}
+		else
+		{
+			//	We can't write to this register.
+			//	Throw the exception that was raised by the pRegisterWrite function.
+			return eException;
+		}
+	}
+
+	//	Restart the relative register counter at 0
+	nRelativeRegisterCounter = 0;
+
+	//	Now--we're actually going to do the write.
+	while ( nRelativeRegisterCounter < nNumberOfRegisters)
+	{
+		//	Current address
+		uint32_t nCurrentAddress = (nStartAddress + nRelativeRegisterCounter);
+
+		//	Grab the appropriate bytes from the MbReqPDU-- the value we want to write.
+		uint16_t nValue = (	(pMbReqPDU[6 + (nRelativeRegisterCounter*2)		] << 8) |
+							(pMbReqPDU[6 + (nRelativeRegisterCounter*2) + 1 ]));
+		uint16_t nValueResult = nValue;
+
+		//	Attempt to write the value.
+		ModbusException_T eException;
+		eException = pRegisterWrite(nCurrentAddress, &nValueResult);
+
+		if (eException != MODBUS_EXCEPTION_OK)
+		{
+			return eException;
+		}
+
+		//	If the nRegisterResult equal to the nRegisterValue?
+		if (nValueResult != nValue)
+		{
+			//	Something went wrong-- we should have mirrored the response.
+			return MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+		}
+		else
+		{
+			nRelativeRegisterCounter++;
+		}
+	}
+
+	//	Our writes are complete.
+	//	Now--build the response, if we've reached this point.
+
+	//	Clear response
+	memset(pMbRspPDU, 0, nMbRspPDULen);
+	(*pMbRspPDUUsed) = 0;
+
+	//	Build
+	//	Function code
+	pMbRspPDU[0] = pMbReqPDU[0];
+
+	//	Starting address
+	pMbRspPDU[1] = (nStartAddress >> 8) & 0xFF;
+	pMbRspPDU[2] = (nStartAddress) 		& 0xFF;
+
+	//	Number of registers
+	pMbRspPDU[3] = (nRelativeRegisterCounter >> 8)  & 0xFF;
+	pMbRspPDU[4] = (nRelativeRegisterCounter) 		& 0xFF;
+
+	(*pMbRspPDUUsed) = 5;
+
+	//	All good.
+	return MODBUS_EXCEPTION_OK;
+}
+
+/*
+	Function:	ModbusFunction_WriteRegister()
+	Description:
+		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
+		Returns zero (no exception) upon success. Returns a
+		non-zero value representing the error code upon failure.
+*/
+ModbusException_T ModbusFunction_WriteRegister(		uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+		   	   	   	   	   	   	   	   					uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+														uint32_t * pMbRspPDUUsed,
+														ModbusException_T (*pRegisterWrite)(uint16_t nAddress, uint16_t * nValue))
+{
+	//	Check #1:	0x0000 <= Register Value <= 0xFFFF
+	//	Ensure that the register value is acceptable.
+	uint16_t nRegisterValue = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
+	if (nRegisterValue < 0x0000 || nRegisterValue > 0xFFFF)
+	{
+		//	Throw an exception.
+		//	This is merely to conform to the MODBUS specification, despite the fact
+		//	this exception will never be reached due to 16-bit number limitations
+		return MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+	}
+
+	//	Check #2:	Register Address == OK
+	//	Check #3:	WriteSingleRegister == OK
+	uint16_t nRegisterAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
+
+	//	This variable should be initialized with the value we want to write.
+	//	After running the pRegisterWrite function, it will be replaced with the
+	//	actual value stored within the register. This value will then be used
+	//	to generate our response.
+	uint16_t nRegisterResult = nRegisterValue;
+	ModbusException_T eResult = pRegisterWrite(nRegisterAddress, &nRegisterValue);
+
+	if (eResult != MODBUS_EXCEPTION_OK)
+	{
+		return eResult;
+	}
+
+	//	If the nRegisterResult equal to the nRegisterValue?
+	if (nRegisterResult != nRegisterValue)
+	{
+		//	Something went wrong-- we should have mirrored the response.
+		return MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+	}
+
+	//	Build the response.
+	//	Clear pMbRspPDU
+	memset(pMbRspPDU, 0, nMbRspPDULen);
+
+	//	The normal response is an echo of the request, returned after
+	//	the register contents have been written.
+	pMbRspPDU[0] = pMbReqPDU[0];
+
+	pMbRspPDU[1] = (nRegisterAddress >> 8) & 0xFF;
+	pMbRspPDU[2] = (nRegisterAddress) & 0xFF;
+
+	pMbRspPDU[3] = (nRegisterResult >> 8) & 0xFF;
+	pMbRspPDU[4] = (nRegisterResult) & 0xFF;
+	(*pMbRspPDUUsed) = 5;
+
+	//	All good.
+	return MODBUS_EXCEPTION_OK;
+}
+
+/*
+	Function:	ModbusFunction_ReadRegisters()
+	Description:
+		Given the MODBUS Request PDU, generate a MODBUS Response PDU.
+		Returns zero (no exception) upon success. Returns a
+		non-zero value representing the error code upon failure.
+*/
+ModbusException_T ModbusFunction_ReadRegisters(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+		   	   	   	   	   	   	   	   					uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+														uint32_t * pMbRspPDUUsed,
+														ModbusException_T (*pRegisterRead)(uint16_t nAddress, uint16_t * nReturn))
 {
 	//	Check #1:	0x0001 <= Quantity of Outputs <= 0x07D0
 	//	We need to ensure we didn't call too many or too few outputs.
 	//	Quantity of outputs defined in byte 3 (upper) and 4 (lower)
 	//	of mb_req_pdu.
 	uint32_t nNumberOfRegisters = (pMbReqPDU[3] << 8) | (pMbReqPDU[4]);
-	if (nNumberOfRegisters < 1 && nNumberOfRegisters > 0x007D)
+	if (nNumberOfRegisters < 1 || nNumberOfRegisters > 0x007D)
 	{
 		return MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 	}
@@ -731,21 +810,18 @@ ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint
 	//	Check #4:	ReadDiscreteOutputs == OK
 	//	When we called all of our READ functions for the coils requested, did they run correctly?
 
-	//	Clear pMbRespPDU
-	memset(pMbRespPDU, 0, nMbRespPDULen);
+	//	Clear pMbRspPDU
+	memset(pMbRspPDU, 0, nMbRspPDULen);
 
 	//	Function Field
-	pMbRespPDU[0] = 0x03;
+	pMbRspPDU[0] = pMbReqPDU[0];
 
 	//	Byte Count
-	pMbRespPDU[1] = (2 * nNumberOfRegisters);
+	pMbRspPDU[1] = (2 * nNumberOfRegisters);
 
 	//	Start inserting the requested registers into the output buffer.
 	uint32_t nStartAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
 	uint16_t nRelativeRegisterCounter = 0;
-
-	//	Exception response?
-	bool bException = false;
 
 	while ( nRelativeRegisterCounter < nNumberOfRegisters)
 	{
@@ -754,30 +830,255 @@ ModbusException_T ModbusFunction_ReadHoldingRegisters(	uint8_t * pMbReqPDU, uint
 
 		//	Attempt to read the value
 		uint16_t nValue;
-		bool bSuccess;
+		ModbusException_T eException;
 
-		bSuccess = ModbusDataModel_ReadHoldingRegister(nCurrentAddress, &nValue);
+		eException = pRegisterRead(nCurrentAddress, &nValue);
 
-		if (bSuccess)
+		if (eException == MODBUS_EXCEPTION_OK)
 		{
 			//	This coil was able to be read.
 			//	Insert this into the output.
-			pMbRespPDU[2 + (nRelativeRegisterCounter * 2)] = 		(nValue >> 8) & 0xFF;
-			pMbRespPDU[2 + (nRelativeRegisterCounter * 2) + 1] = 	(nValue) & 0xFF;
+			pMbRspPDU[2 + (nRelativeRegisterCounter * 2)] = 		(nValue >> 8) & 0xFF;
+			pMbRspPDU[2 + (nRelativeRegisterCounter * 2) + 1] = 	(nValue) & 0xFF;
 		}
 		else
 		{
-			//	This coil wasn't able to be read.
-			//	Generate the exception response, and break out of the loop.
-			return MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+			//	This coil wasn't able to be read properly--an error occurred.
+			//	Propagate the error up to the caller.
+			return eException;
 		}
-
 		nRelativeRegisterCounter++;
 	}
 
-	//	If we've reached this point, we've completed filling the pMbRespPDU.
-	(*pMbRespPDUUsed) = 1 + 1 + (pMbRespPDU[1]);
+	//	If we've reached this point, we've completed filling the pMbRspPDU.
+	(*pMbRspPDUUsed) = 1 + 1 + (pMbRspPDU[1]);
+
 	return MODBUS_EXCEPTION_OK;
+}
+
+/*
+	Function:	ModbusFunction_AppendObject()
+	Description:
+		Given a buffer, its length, and a nObjectID, attempts to
+		add an object to the buffer in the format of
+			[nObjectID, nSize, aData].
+		If the object cannot fit or some other error occurs, 0 is returned.
+		Otherwise, the number of bytes written is returned.
+
+		Failure conditions:
+		-	Couldn't read the ObjectID	-->	doesn't exist
+		-	Couldn't read the ObjectID  --> doesn't fit
+
+		How do we differentiate between the two?
+*/
+unsigned int ModbusFunction_AppendObject(	uint8_t * pBuffer,
+											int nBytesLeft,
+											uint8_t nObjectID,
+											bool * bDoesntFit)
+{
+	//	Number of bytes that have been written out.
+	uint8_t nBytesWritten = 0;
+	uint8_t nBytesToBeUsed = 0;
+
+	//	Can this object be read?
+	if (MODBUS_EXCEPTION_OK == ModbusDataModel_ReadObjectID(nObjectID, NULL, 0, &nBytesToBeUsed))
+	{
+		//	Cool. Determine whether or not we can actually put this into the buffer.
+		if ( ((nBytesToBeUsed + 2) < nBytesLeft))
+		{
+			//	Is the buffer defined?
+			if ((pBuffer != NULL))
+			{
+				//	We can. Go ahead and do it.
+				pBuffer[0] = nObjectID;
+				pBuffer[1] = nBytesToBeUsed;
+				ModbusDataModel_ReadObjectID(nObjectID, &(pBuffer[2]), (nBytesLeft-2), &nBytesWritten);
+
+				//	Account for the two bytes written at the beginning.
+				nBytesWritten += 2;
+			}
+		}
+		else
+		{
+			//	Uh-oh-- it doesn't fit.
+			if (bDoesntFit != NULL)
+			{
+				(*bDoesntFit) = true;
+			}
+		}
+	}
+
+	//	Finally, return the bytes that were truly written out.
+	return nBytesWritten;
+}
+
+
+
+
+
+
+
+
+
+
+
+/*
+	Function:	ModbusFunction_ReadDeviceIdentification
+	Description:
+		Device identification functions and subfunctions.
+		Note that this function will also require the MEI Type to be set to 14 (0x0E),
+		otherwise, it will return an illegal function exception.
+*/
+ModbusException_T ModbusFunction_ReadDeviceIdentification(	uint8_t * pMbReqPDU, uint32_t nMbReqPDULen,
+	   	   													uint8_t * pMbRspPDU, uint32_t nMbRspPDULen,
+															uint32_t * pMbRspPDUUsed)
+{
+	//	Storage for an exception response.
+	ModbusException_T eException;
+
+	//	Check #1:	MEI Type == 0x0E
+	//	If this isn't the correct MEI Type, this is effectively an
+	//	invalid function request, and as such, we'll report so.
+	uint8_t nMEIType = (pMbReqPDU[1]);
+	if (nMEIType != 0x0E)
+	{
+		eException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
+		return eException;
+	}
+
+	//	Check #2:	Object ID OK
+	//	Determine whether or not this Object ID exists
+	//	Note that this isn't the place where we'll do the actual
+	//	read-- there are more checks that need to be done.
+	uint8_t nObjectID = (pMbReqPDU[3]);
+
+
+	eException = ModbusDataModel_ReadObjectID(nObjectID, NULL, 0, NULL);
+	if (eException != MODBUS_EXCEPTION_OK)
+	{
+		//	This wasn't a valid Object ID.
+		//	Throw the exception that was raised by the function.
+		return eException;
+	}
+
+	//	We're going to begin to build the response.
+	//	Note that it's certainly possible for us to fail later-- that's okay,
+	//	as it'll be indicated by the eException value returned.
+	memset(pMbRspPDU, 0, nMbRspPDULen);
+	(*pMbRspPDUUsed) = 0;
+
+	//	Basically the "header" of all responses.
+	//	Some of these values will get changed later.
+	pMbRspPDU[0] = 0x2B;			//	Function Code
+	pMbRspPDU[1] = 0x0E;			//	MEI Type
+	pMbRspPDU[2] = pMbReqPDU[2];	//	Read Dev ID code
+	pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	(TODO: echos for now)
+	pMbRspPDU[4] = 0;				//	More follows flag (TODO: implement)
+	pMbRspPDU[5] = nObjectID;		//	Next Object ID
+	pMbRspPDU[6] = 0;				//	Number of objects
+	(*pMbRspPDUUsed) += 7;
+
+	//	Helper variables, for our loop.
+	int nObjectIDMax = 0;
+	int nObjectIDStart = nObjectID;
+	int nNumObjectsAdded = 0;
+
+	int nObjectIDRelativeCnt = 0;
+	
+	//	The list of Objects will start at [7]
+	uint8_t * pNextObject = &(pMbRspPDU[7]);
+	int nNumberOfBytesLeft = (int) (pMbRspPDU + nMbRspPDULen - &(pMbRspPDU[7]));
+
+	//	Check #3:	Read DeviceID Code OK
+	//	This determines the type of read of which we'd like to complete.
+	uint8_t nReadDevIDCode = (pMbReqPDU[2]);
+	switch (nReadDevIDCode)
+	{
+		//	Category:	Basic
+		case 0x01:
+
+			//		ObjID	ObjName					ObjType
+			//		-----	-------					-------
+			//		0x00	VendorName				ASCII_String
+			//		0x01	ProductCode				ASCII_String
+			//		0x02	MajorMinorRevision		ASCII_String
+
+			//	We're required to return a set number of objects in this scenario.
+			//	This will *always* be the range of 0x00-0x02.
+			nObjectIDMax = 0x03;
+			break;
+		case 0x02:
+			//	Regular identification
+			//	(stream access only)
+			nObjectIDMax = 0x80;
+			break;
+		case 0x03:
+			//	Extended identification
+			//	(stream access only)
+			nObjectIDMax = 0xFF;
+			break;
+		case 0x04:
+			//	One specific identification object
+			//	(individual access only)
+			nObjectIDMax = nObjectIDStart+1;
+			break;
+		default:
+			//	If the ReadDevID code is illegal, send back
+			//	an exception 0x03 response.
+			eException = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+			break;
+	}
+
+	//	Primary loop, of which objects are inserted into the buffer
+	while (	(nObjectIDStart + nObjectIDRelativeCnt) < nObjectIDMax)
+	{
+		bool bDoesntFit = false;
+		int nBytesAdded = ModbusFunction_AppendObject(pNextObject, nNumberOfBytesLeft, (nObjectIDStart + nObjectIDRelativeCnt), &bDoesntFit);
+
+		//	Determine if we've reached a failure scenario.
+		//	And if so-- why?
+		if (nBytesAdded == 0)
+		{
+			//	Depends on the device ID that we've requested--
+			if ((nObjectIDStart + nObjectIDRelativeCnt) < 0x03)
+			{
+				eException = MODBUS_EXCEPTION_SLAVE_DEVICE_FAILURE;
+				break;
+			}
+			else
+			{
+				//	Does this not fit?
+				if (bDoesntFit)
+				{
+					//	Oh yeah we're out of room, go ahead and terminate.
+					//	But this will be the next object.
+					pMbRspPDU[4] = 0xFF;						//	More follows flag (TODO: implement)
+					pMbRspPDU[5] = (nObjectIDStart + 			//	Next Object ID, pick up where we left off.
+									nObjectIDRelativeCnt);
+
+					//	Graceful break.
+					break;
+				}
+
+				//	It's certainly possible that this isn't implemented.
+				//	We can continue to move on.
+			}
+		}
+		else
+		{
+			nNumObjectsAdded += 1;
+			pNextObject += nBytesAdded;
+			(*pMbRspPDUUsed) += nBytesAdded;
+		}
+		nObjectIDRelativeCnt += 1;
+
+
+	}
+
+	//	After we're done, write number of objects written
+	pMbRspPDU[6] = nNumObjectsAdded;
+
+	return eException;
 }
 
 /*
@@ -871,14 +1172,14 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 	uint8_t * pMbReqPDU = &pInputBuffer[1];
 	uint32_t nMbReqPDULen = nInputBufferLen-1;
 
-	uint8_t aMbRespPDU[MODBUS_PDU_LEN];
-	uint8_t * pMbRespPDU = aMbRespPDU;
-	uint32_t nMbRespPDULen = MODBUS_PDU_LEN;
-	uint32_t nMbRespPDUUsed = 0;
+	uint8_t aMbRspPDU[MODBUS_PDU_LEN];
+	uint8_t * pMbRspPDU = aMbRspPDU;
+	uint32_t nMbRspPDULen = MODBUS_PDU_LEN;
+	uint32_t nMbRspPDUUsed = 0;
 
 	//	Build the exception handler
 	//	Upon success, this value should remain zero.
-	uint8_t nMbException = 0;
+	ModbusException_T eMbException = 0;
 
 	switch(nFunctionCode)
 	{
@@ -897,23 +1198,49 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 
 			break;
 		case 0x03:
-			ModbusFunction_ReadHoldingRegisters(   pMbReqPDU, nMbReqPDULen,
-												   pMbRespPDU, nMbRespPDULen,
-												   &nMbRespPDUUsed);
+			eMbException = ModbusFunction_ReadRegisters(		pMbReqPDU, nMbReqPDULen,
+												   	   	   	   	pMbRspPDU, nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_ReadHoldingRegister);
+			break;
+		case 0x04:
+			eMbException = ModbusFunction_ReadRegisters(		pMbReqPDU, nMbReqPDULen,
+												   	   	   	   	pMbRspPDU, nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_ReadInputRegister);
+			break;
+		case 0x06:
+			eMbException = ModbusFunction_WriteRegister(		pMbReqPDU,	nMbReqPDULen,
+																pMbRspPDU,	nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_WriteHoldingRegister);
+			break;
+		case 0x10:
+			eMbException = ModbusFunction_WriteRegisters(		pMbReqPDU,	nMbReqPDULen,
+																pMbRspPDU,	nMbRspPDULen,
+																&nMbRspPDUUsed,
+																ModbusDataModel_WriteHoldingRegister);
+			break;
+		case 0x2B:
+			eMbException = ModbusFunction_ReadDeviceIdentification(	pMbReqPDU,	nMbReqPDULen,
+																	pMbRspPDU,	nMbRspPDULen,
+																	&nMbRspPDUUsed);
 			break;
 		default:
-			nMbException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
+			eMbException = MODBUS_EXCEPTION_ILLEGAL_FUNCTION;
 			break;
 	}
 
-	if (nMbException)
+	if (eMbException != MODBUS_EXCEPTION_OK)
 	{
-		//	TODO:	There was an exception, we'll handle it later.
+		ModbusFunction_Exception(	pMbReqPDU, nMbReqPDULen,
+				   	   	   	   	    pMbRspPDU, nMbRspPDULen,
+								    &nMbRspPDUUsed, eMbException);
 	}
 
 	//	Append the CRC to the end of the response.
 	uint32_t nTotalBytes =
-			ModbusSlave_BuildFrame(	pMbRespPDU, nMbRespPDUUsed,
+			ModbusSlave_BuildFrame(	pMbRspPDU, nMbRspPDUUsed,
 									pOutputBuffer, nOutputBufferLen);
 
 	(*pOutputBufferLenUsed) = nTotalBytes;
@@ -996,12 +1323,16 @@ void ModbusSlave_Process(void)
 
 					//	Attempt to send.
 					bSent = ModbusSlave_PrepareForOutput(m_aModbusSlaveOutputBuffer, m_nModbusSlaveOutputBufferPos);
-					if (bSent)
-					{
-						printf("response sent");
-					}
-
 					m_eModbusSlaveState = MODBUS_SLAVE_SEND_WAIT;
+				}
+				else
+				{
+					//	While this is indeed a valid Modbus command, it isn't
+					//	addressed to us specifically.
+
+					//	This wasn't anything useful to us, go ahead and wipe the buffer.
+					memset(m_aModbusSlaveInputBuffer, 0, MODBUS_SLAVE_INPUT_BUFFER_SIZE);
+					m_nModbusSlaveInputBufferPos = 0;
 				}
 			}
 			break;

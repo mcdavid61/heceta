@@ -78,6 +78,26 @@ void ADC_Process(void)
   }
 }
 
+uint16_t ADC_Get_Supply_Voltage(void)
+{
+	return ADC_24V_Mon;
+}
+
+uint16_t ADC_Get_3V3_Voltage(void)
+{
+	return ADC_3V3_Mon;
+}
+
+uint16_t ADC_Get_VrefInt_Voltage(void)
+{
+	return ADC_VrefInt;
+}
+
+uint16_t ADC_Get_Temperature(void)
+{
+	return ADC_Temperature;
+}
+
 /**
  * @brief  Conversion complete callback in non blocking mode
  * @param  AdcHandle : ADC handle

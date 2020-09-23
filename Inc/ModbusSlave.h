@@ -9,6 +9,8 @@
 #define MODBUSSLAVE_H_
 
 #include "ByteFIFO.h"
+#include "stm32l4xx_hal.h"
+
 #define MODBUS_SLAVE_TIMER htim2
 
 typedef enum
@@ -23,6 +25,7 @@ typedef enum
 	MODBUS_EXCEPTION_MEMORY_PARITY_ERROR		= 0x08,
 	MODBUS_EXCEPTION_GATEWAY_PATH_UNAVAILABLE 	= 0x0A,
 	MODBUS_EXCEPTION_GATEWAY_TARGET_FAILED_RESP	= 0x0B,
+	MODBUS_EXCEPTION_UNKNOWN					= 0xFF,
 }	ModbusException_T;
 
 typedef struct
