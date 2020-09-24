@@ -26,6 +26,11 @@
 
 void LED_Process(void)
 {
+	//	Note that the LED_Process() function can be disabled or effectively
+	//	stubbed out due to, perhaps, a debug function requiring use of the
+	//	pins of which the LEDs are connected to.
+	#ifndef DEBUG_DISABLE_LEDS
+
 	//	There are two configurations for the LEDs
 	//	-	Regular Mode
 	//			Aka, this is the mode that the system normally runs in.
@@ -59,6 +64,8 @@ void LED_Process(void)
 			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
 		}
 	}
+	#endif
+
 }
 
 /*************************** END OF FILE **************************************/
