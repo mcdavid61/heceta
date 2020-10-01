@@ -16,18 +16,18 @@
 		pWriteFunction = write; \
 		break;
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
-	HOLDING_REGISTER(1100, "Module Disable",	 				NULL,	NULL) \
-	HOLDING_REGISTER(1101, "Relay States Requested", 			Relay_Get_Relay,	Relay_Set_Relay) \
-	HOLDING_REGISTER(1102, "Relay States Actual", 				Relay_Get_Relay,	NULL) \
-	HOLDING_REGISTER(1103, "Fault Code HI",	 					NULL,	NULL) \
-	HOLDING_REGISTER(1104, "Fault Code LO",	 					NULL,	NULL) \
-	HOLDING_REGISTER(1105, "Relay Fault", 						NULL,	NULL) \
-	HOLDING_REGISTER(1106, "Fault Flag", 						NULL,	NULL) \
-	HOLDING_REGISTER(1107, "Supply Voltage", 					ADC_Get_Supply_Voltage,		NULL) \
-	HOLDING_REGISTER(1108, "3.3V Reference Voltage", 			ADC_Get_3V3_Voltage,		NULL) \
-	HOLDING_REGISTER(1109, "Vref Internal", 					ADC_Get_VrefInt_Voltage,	NULL) \
-	HOLDING_REGISTER(1110, "Temperature (C)", 					ADC_Get_Temperature,		NULL) \
-	HOLDING_REGISTER(2100, "Parameter Unlock", 					Configuration_GetParameterUnlockCode, 			Configuration_SetParameterUnlockCode) \
+	HOLDING_REGISTER(1100, 	"Module Disable",	 				NULL,	NULL) \
+	HOLDING_REGISTER(1101, 	"Relay States Requested", 			Relay_Get,	Relay_Set) \
+	HOLDING_REGISTER(1102, 	"Relay States Actual", 				Relay_Get,	NULL) \
+	HOLDING_REGISTER(1103, 	"Fault Code HI",	 				NULL,	NULL) \
+	HOLDING_REGISTER(1104, 	"Fault Code LO",	 				NULL,	NULL) \
+	HOLDING_REGISTER(1105, 	"Relay Fault", 						NULL,	NULL) \
+	HOLDING_REGISTER(1106, 	"Fault Flag", 						NULL,	NULL) \
+	HOLDING_REGISTER(1107, 	"Supply Voltage", 					ADC_Get_Supply_Voltage,		NULL) \
+	HOLDING_REGISTER(1108, 	"3.3V Reference Voltage", 			ADC_Get_3V3_Voltage,		NULL) \
+	HOLDING_REGISTER(1109, 	"Vref Internal", 					ADC_Get_VrefInt_Voltage,	NULL) \
+	HOLDING_REGISTER(1110, 	"Temperature (C)", 					ADC_Get_Temperature,		NULL) \
+	HOLDING_REGISTER(2100, 	"Parameter Unlock", 				Configuration_GetParameterUnlockCode, 			Configuration_SetParameterUnlockCode) \
 	HOLDING_REGISTER(2101,	"RS-485 Node Address",				Configuration_GetModbusAddress,					NULL) \
 	HOLDING_REGISTER(2102,	"Baud Rate",						Configuration_IsBaudRate19200,					NULL) \
 	HOLDING_REGISTER(2103,	"Stop Bits",						Configuration_GetStopBits,						NULL) \
