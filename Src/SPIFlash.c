@@ -606,6 +606,8 @@ void SPIFlash_Process()
 				nInternalCounter++;
 			}
 			break;
+		case 4:
+			break;
 		default:
 			nInternalCounter = 0;
 	}
