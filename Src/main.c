@@ -187,8 +187,11 @@ int main(void)
 	  SPIFlash_Process();
 	  sequenceIndex = 6;
 
-	  ADC_Process();
+	  EEPROM_Process();
 	  sequenceIndex = 7;
+
+	  ADC_Process();
+	  sequenceIndex = 8;
 
 	  HAL_IWDG_Refresh(&hiwdg);
 	  sequenceIndex = 1;

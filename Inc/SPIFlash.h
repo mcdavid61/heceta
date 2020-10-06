@@ -16,6 +16,8 @@
 #define Read_Data_Bytes_READ                    (uint8_t)0x03
 #define Page_Program_PP                         (uint8_t)0x02
 
+#define SPIFLASH_RDSR_BUSY_BIT 					(1 << 0)
+
 //	Size macros
 #define SPIFLASH_CHIP_SIZE				(4096)		//	Total size of serial flash in bytes, CAT25320VI-GT3
 #define SPIFLASH_PAGE_SIZE				(32)		//	Page size
@@ -67,4 +69,8 @@ typedef struct
 	uint32_t nBytesLeft;
 } SPIWriteStatus_T;
 
+bool SPIFlash_IsFree(void);
+bool SPIFlash_Write(uint8_t * pBuffer, uint16_t nPage, uint16_t nPageOffset, uint16_t nSize);
+bool SPIFlash_Read(uint8_t * pBuffer, uint16_t nPage, uint16_t nPageOffset, uint16_t nSize);
+void SPIFlash_Process(void);
 #endif /* SPIFLASH_H_ */

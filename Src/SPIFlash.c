@@ -17,30 +17,9 @@
 #include "SPIFlash.h"
 #include "stm32l4xx_hal.h"
 
-
-typedef enum
-{
-	NVVER_V0,
-	NVVER_MAX = 0xFFFF,
-}	NVConf_Version_T;
-
-typedef struct
-{
-	//	Configuration structure version
-	NVConf_Version_T nVersion;
-
-	//	Parameters
-	uint16_t nFaultMap;
-
-	//	CRC
-	uint16_t nCRC;
-}	NonVolatileConfiguration_T;
-
-
-
 static const uint8_t m_nWREN = Write_Enable_WREN;    //	A 1 byte command buffer
 static const uint8_t m_nWRDI = Write_Disable_WRDI;    //	A 1 byte command buffer
-static const uint8_t m_nRDSR = Read_Status_Register_RDSR;
+static const uint8_t m_nRDSR = Read_Status_Register_RDSR;    //	A 1 byte command buffer
 
 
 
@@ -63,6 +42,9 @@ static bool m_bSPIOperationInProgress = false;
 //	Write status
 static SPIWriteStatus_T m_sSPIWriteStatus = {0};
 
+//	Status register
+static uint8_t m_nSR = {0};
+
 //	Command buffer, location of where the command bytes are stored.
 //	Note that not all fields of this command buffer will be used for all commands.
 //	In the format of:	[Byte 0 (OPCODE)] [Byte 1 (UpperAddr)] [Byte 2 (LowerAddr)]
@@ -71,15 +53,16 @@ static uint8_t m_aCommandBuffer[3] = {0};
 //	Data buffer
 //	TODO:	Determine if it's worth it for us to internally have a data buffer.
 //			I personally don't believe that it's worth it for us to.
-static uint8_t m_aSPIDataBuffer[SPIFLASH_PAGE_SIZE];  	//	Outgoing Data / Incoming Data
+//	static uint8_t m_aSPIDataBuffer[SPIFLASH_PAGE_SIZE];  	//	Outgoing Data / Incoming Data
 
 
 //	Debug code
-#define DEBUG_SPIFLASH_CONSTANT_READS_AND_WRITES
+//	#define DEBUG_SPIFLASH_CONSTANT_READS_AND_WRITES
 #ifdef DEBUG_SPIFLASH_CONSTANT_READS_AND_WRITES
+#define DEBUG_SPIFLASH_BUFFER_SIZE (128)
 	static uint16_t nInternalCounter = 0;
-	static uint8_t aExpectedContentsBuffer[32] = {0};
-	static uint8_t aTestBuffer[32] = {0};
+	static uint8_t aExpectedContentsBuffer[DEBUG_SPIFLASH_BUFFER_SIZE] = {0};
+	static uint8_t aTestBuffer[DEBUG_SPIFLASH_BUFFER_SIZE] = {0};
 #endif
 
 /*
@@ -92,6 +75,18 @@ static uint8_t m_aSPIDataBuffer[SPIFLASH_PAGE_SIZE];  	//	Outgoing Data / Incomi
 	-----------------------------------------------------------------------
 */
 
+/*
+	Function:	SPIStep_ReadStatusRegisterCommand
+	Description:
+		Configures the next SPIStep_T for a write enable / disable.
+*/
+void SPIStep_ReadStatusRegisterCommand(SPIStep_T * pStep)
+{
+	pStep->pTransmitData = &m_nRDSR;
+	pStep->pReceiveData = NULL;
+	pStep->nByteCount = 1;
+	pStep->bSetCSHigh = false;
+}
 /*
 	Function:	SPIStep_WriteEnable
 	Description:
@@ -130,7 +125,7 @@ void SPIStep_Write(SPIStep_T * pStep, uint8_t * pBuffer, uint16_t nPage, uint16_
 		Configures the next SPIStep_T for the actual read command.
 		This will read bytes in to a buffer, with no maximum count enforced.
 */
-void SPIStep_Read(SPIStep_T * pStep, uint8_t * pBuffer, uint16_t nPage, uint16_t nPageOffset, uint16_t nBytesToRead)
+void SPIStep_Read(SPIStep_T * pStep, uint8_t * pBuffer, uint16_t nBytesToRead)
 {
 	//	The following code ensures that we cannot cross page boundaries.
 	//	If the page boundary is exceeded, write however many bytes are left in the page.
@@ -168,6 +163,25 @@ void SPIStep_CommandAddress(SPIStep_T * pStep, uint8_t nCommand, uint16_t nPage,
 }
 
 /*
+	Function:	SPIStep_ReadStatusRegister()
+	Description:
+		Kickstarts the process of writing a 32 byte (or smaller) page to the flash.
+		NOTE:	Requires TWO pSteps within the array.
+*/
+bool SPIStep_ReadStatusRegister(SPIStep_T * pStep)
+{
+	//	No preconditions to run this step, we're just OK to do it.
+	//	Clear for dispatch.
+	SPIStep_ReadStatusRegisterCommand(&pStep[0]);
+	SPIStep_Read(&pStep[1], &m_nSR, 1);
+	pStep[1].bSetCSHigh = true;
+
+	//	Boolean value, returning the success or failure of this function
+	//	This function will always pass.
+	return true;
+}
+
+/*
 	-----------------------------------------------------------------------
 	Category:	SPIFlash Operation Functions
 	Description:
@@ -183,7 +197,7 @@ void SPIStep_CommandAddress(SPIStep_T * pStep, uint8_t nCommand, uint16_t nPage,
 		Determines whether or not the SPIStep / SPI bus is free, based on
 		a simple memory compare of the entire range to zero.
 */
-bool SPIFlash_IsFree()
+bool SPIFlash_IsFree(void)
 {
 	//	Boolean value, assumes that we are okay until otherwise determined.
 	bool bFree = true;
@@ -208,38 +222,6 @@ bool SPIFlash_IsFree()
 	return bFree;
 }
 
-
-/*
-	Function:	SPIFlash_PageWrite()
-	Description:
-		Kickstarts the process of writing a 32 byte (or smaller) page to the flash.
-*/
-bool SPIFlash_PageWrite(uint8_t * pBuffer, uint16_t nPage, uint16_t nPageOffset, uint16_t nSize)
-{
-	//	Boolean value, returning the success or failure of this function
-	//	Until deemed otherwise, we must assume that this function will fail.
-	bool bReturn = false;
-
-	//	Determine if the SPIStep_T is in use.
-	bool bSPIStepsClear = SPIFlash_IsFree();
-
-	//	Determine if the criteria for actually setting this up has passed
-	if ( (pBuffer != NULL) &&
-			(nPage < SPIFLASH_PAGE_COUNT) &&
-				(  (nPageOffset + nSize) < SPIFLASH_PAGE_SIZE) &&
-					bSPIStepsClear)
-	{
-		//	Good to go.
-		//	Setup the steps.
-		SPIStep_WriteEnable(&m_aSPIStep[0], true);
-		SPIStep_CommandAddress(&m_aSPIStep[1], Page_Program_PP, nPage, nPageOffset);
-		SPIStep_Write(&m_aSPIStep[2], pBuffer, nPage, nPageOffset, nSize);
-		m_aSPIStep[2].bSetCSHigh = true;
-	}
-
-	return bReturn;
-}
-
 /*
 	Function:	SPIFlash_WriteHelper
 	Description:
@@ -255,19 +237,46 @@ void SPIFlash_WriteHelper(void * pArgs)
 	//	The number of bytes of which will actually get written during this SPI write command.
 	uint32_t nByteCount = (pSPIWriteStatus->nPageOffset + pSPIWriteStatus->nBytesLeft <= SPIFLASH_PAGE_SIZE) ? pSPIWriteStatus->nBytesLeft : (SPIFLASH_PAGE_SIZE - pSPIWriteStatus->nPageOffset);
 
-	SPIStep_WriteEnable(&m_aSPIStep[0], true);
-	SPIStep_CommandAddress(&m_aSPIStep[1], Page_Program_PP, pSPIWriteStatus->nPage, pSPIWriteStatus->nPageOffset);
-	SPIStep_Write(&m_aSPIStep[2], pSPIWriteStatus->pBuffer, pSPIWriteStatus->nPage, pSPIWriteStatus->nPageOffset, nByteCount);
-	m_aSPIStep[2].bSetCSHigh = true;
+	//	Before the next write is permitted to occur-- it is required that the
+	//	SR busy bit is set to zero.
+	//	This is to ensure that we don't step on anyone's toes as they're attempting
+	//	to write out data.
+	if (m_nSR & SPIFLASH_RDSR_BUSY_BIT)
+	{
+		//	Something else is in progress.
+		//	Let's come back later after we re-read the SR register.
+		SPIStep_ReadStatusRegister(&m_aSPIStep[0]);
 
-	//	Adjust the write status for the next operation.
-	pSPIWriteStatus->pBuffer = &pSPIWriteStatus->pBuffer[nByteCount];
-	pSPIWriteStatus->nPage = pSPIWriteStatus->nPage + 1;
-	pSPIWriteStatus->nPageOffset = (pSPIWriteStatus->nPageOffset + nByteCount) % SPIFLASH_PAGE_SIZE;
-	pSPIWriteStatus->nBytesLeft -= nByteCount;
+		//	Don't touch the write status.
+		m_pSPIPostOperationFunc = SPIFlash_WriteHelper;
+		m_pSPIPostOperationFuncArgs = pSPIWriteStatus;
+	}
+	else
+	{
+		//	Are we done?
+		if (nByteCount > 0)
+		{
+			//	Not quite yet.
+			SPIStep_WriteEnable(&m_aSPIStep[0], true);
+			SPIStep_CommandAddress(&m_aSPIStep[1], Page_Program_PP, pSPIWriteStatus->nPage, pSPIWriteStatus->nPageOffset);
+			SPIStep_Write(&m_aSPIStep[2], pSPIWriteStatus->pBuffer, pSPIWriteStatus->nPage, pSPIWriteStatus->nPageOffset, nByteCount);
+			m_aSPIStep[2].bSetCSHigh = true;
+			SPIStep_ReadStatusRegister(&m_aSPIStep[3]);
 
-	m_pSPIPostOperationFunc = pSPIWriteStatus->nBytesLeft ? SPIFlash_WriteHelper : NULL;
-	m_pSPIPostOperationFuncArgs = pSPIWriteStatus->nBytesLeft ? pSPIWriteStatus : NULL;
+			//	Adjust the write status for the next operation.
+			pSPIWriteStatus->pBuffer = &pSPIWriteStatus->pBuffer[nByteCount];
+			pSPIWriteStatus->nPage = pSPIWriteStatus->nPage + 1;
+			pSPIWriteStatus->nPageOffset = (pSPIWriteStatus->nPageOffset + nByteCount) % SPIFLASH_PAGE_SIZE;
+			pSPIWriteStatus->nBytesLeft -= nByteCount;
+
+			m_pSPIPostOperationFunc = SPIFlash_WriteHelper;
+			m_pSPIPostOperationFuncArgs = pSPIWriteStatus;
+		}
+	}
+
+
+
+
 }
 
 
@@ -330,10 +339,11 @@ bool SPIFlash_Read(uint8_t * pBuffer, uint16_t nPage, uint16_t nPageOffset, uint
 		//	Good to go.
 		//	Setup the steps.
 		SPIStep_CommandAddress(&m_aSPIStep[0], Read_Data_Bytes_READ, nPage, nPageOffset);
-		SPIStep_Read(&m_aSPIStep[1], pBuffer, nPage, nPageOffset, nSize);
+		SPIStep_Read(&m_aSPIStep[1], pBuffer, nSize);
 		m_aSPIStep[1].bSetCSHigh = true;
 		bReturn = true;
 	}
+
 	return bReturn;
 }
 
@@ -369,42 +379,11 @@ void SPIFlash_OperationCompleteCallback()
 		//	function explicitly changes it / completes it for us.
 		pSPIPostOperationFunc(pSPIPostOperationFuncArgs);
 	}
-	else
-	{
-		//	If there isn't a post-operation step that needs to be completed,
-		//	then go ahead and assume that the SPIFlash is IDLE.
-		m_eSPIFlashState = SPIFLASH_STATE_IDLE;
-	}
 
 	//	Note that it is the responsibility of the function to ensure that there
 	//	is some form of a transition from the SPI
 }
 
-
-
-static NonVolatileConfiguration_T m_nNVDataCurrent;
-static NonVolatileConfiguration_T m_nNVDataRead;
-
-
-
-
-
-
-
-
-
-
-
-
-
-void SPIFlash_WriteNonVolatileConfiguration()
-{
-
-}
-
-/*
-
-*/
 
 /*
     Function:   SPIFlash_SetupNextOperation
@@ -512,7 +491,7 @@ void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
 		doesn't match what we expect it to in memory (say because of a change),
 		then we'll go ahead and rewrite it out.
 */
-void SPIFlash_Process()
+void SPIFlash_Process(void)
 {
 
 	//	The following is the actual SPIFlash_Process code that should remain
@@ -576,7 +555,7 @@ void SPIFlash_Process()
 	switch(nInternalCounter)
 	{
 		case 0:
-			SPIFlash_Read(aTestBuffer, 0, 0, 32);
+			SPIFlash_Read(aTestBuffer, 0, 0, DEBUG_SPIFLASH_BUFFER_SIZE);
 			nInternalCounter++;
 			break;
 		case 1:
@@ -584,25 +563,25 @@ void SPIFlash_Process()
 			{
 				//	Generate a random buffer
 				int nCntr = 0;
-				for (nCntr = 0; nCntr < 32; nCntr++)
+				for (nCntr = 0; nCntr < DEBUG_SPIFLASH_BUFFER_SIZE; nCntr++)
 				{
-					aExpectedContentsBuffer[nCntr] = rand() & 0xFF;
+					aExpectedContentsBuffer[nCntr] = (rand() * rand()) & 0xFF;
 				}
-				SPIFlash_Write(aExpectedContentsBuffer, 0, 0, 32);
+				SPIFlash_Write(aExpectedContentsBuffer, 0, 0, DEBUG_SPIFLASH_BUFFER_SIZE);
 				nInternalCounter++;
 			}
 			break;
 		case 2:
 			if (SPIFlash_IsFree())
 			{
-				SPIFlash_Read(aTestBuffer, 0, 0, 32);
+				SPIFlash_Read(aTestBuffer, 0, 0, DEBUG_SPIFLASH_BUFFER_SIZE);
 				nInternalCounter++;
 			}
 			break;
 		case 3:
 			if (SPIFlash_IsFree())
 			{
-				volatile int memory_compare_stat = memcmp(aTestBuffer, aExpectedContentsBuffer, 32);
+				volatile int memory_compare_stat = memcmp(aTestBuffer, aExpectedContentsBuffer, DEBUG_SPIFLASH_BUFFER_SIZE);
 				nInternalCounter++;
 			}
 			break;
