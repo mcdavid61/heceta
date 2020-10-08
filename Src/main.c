@@ -136,7 +136,6 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_GPIO_INIT();
-
   ModbusSlave_Init();
 
   /* Run the ADC calibration in single-ended mode */
@@ -158,9 +157,40 @@ int main(void)
 
   uint32_t UID = UUID_Get_ID();
 
+  //	Pre-execution self-test processing loop.
+  //	Responsible for running all of the self tests that occur before the system boots.
+  bool bSelfTestsNotComplete = true;
+
+  while (bSelfTestsNotComplete)
+  {
+	  bSelfTestsNotComplete = false;
+
+	  bSelfTestsNotComplete |= LED_Startup_Test();
+	  HAL_IWDG_Refresh(&hiwdg);
+  }
+
+
+
+
   printf("\n\rHeceta Relay Module v%d.%d.%d, 0x%08lX\n\r> ", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD, UID);
   Debug_Write(testString, sizeof(testString));
   sequenceIndex = 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /* USER CODE END 2 */
 
@@ -729,9 +759,7 @@ PUTCHAR_PROTOTYPE
 {
   /* Place your implementation of fputc here */
   /* e.g. write a character to the USART1 and Loop until the end of transmission */
-	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
-	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 
 	ITM_SendChar(ch);
 

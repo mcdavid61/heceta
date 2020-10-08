@@ -12,6 +12,11 @@
 #define	ADC_REF_VOLT			3300
 #define	ADC_MAX_COUNTS		4095
 
+#define ADC_3V3_TOLERANCE_LOW 	3230
+#define ADC_3V3_TOLERANCE_HIGH 	3370
+#define ADC_VIN_TOLERANCE_LOW 	22800
+#define ADC_VIN_TOLERANCE_HIGH 	25200
+
 #define TS30	((uint16_t*)((uint32_t)0x1FFF75A8))
 #define TS110	((uint16_t*)((uint32_t)0x1FFF75CA))
 

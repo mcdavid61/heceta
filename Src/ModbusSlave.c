@@ -23,6 +23,7 @@
 #include "ModbusDataModel.h"
 #include "CRC.h"
 #include "Configuration.h"
+#include "LED.h"
 
 //	Modbus will use its own FIFO structure.
 //	This is necessary to store whether or not it meets the appropriate
@@ -313,12 +314,12 @@ HAL_StatusTypeDef ModbusSlave_UART_Receive_IT(UART_HandleTypeDef *huart)
 /*
 	Function:	ModbusSlave_PrepareForInput()
 	Description:
-		Sets up the Command.c module to accept input
-		from the USART3 serial.
+		Sets up the ModbusSlave.c module to accept input
+		from the USART1 serial.
 */
 bool ModbusSlave_PrepareForInput()
 {
-	//	Grab the USART3 handle.
+	//	Grab the USART1 handle.
 	UART_HandleTypeDef * pUSART = Main_Get_Modbus_UART_Handle();
 
 	//	Result of our request.
@@ -355,8 +356,8 @@ bool ModbusSlave_PrepareForInput()
 /*
 	Function:	ModbusSlave_PrepareForOutput()
 	Description:
-		Sets up the Command.c module to accept input
-		from the USART3 serial.
+		Sets up the ModbusSlave.c module to send output
+		from the USART1 serial.
 */
 
 bool ModbusSlave_PrepareForOutput(uint8_t * pBuffer, uint32_t nBufferLen)
@@ -364,7 +365,7 @@ bool ModbusSlave_PrepareForOutput(uint8_t * pBuffer, uint32_t nBufferLen)
 	//	Return value
 	bool bReturn = false;
 
-	//	Grab the USART3 handle.
+	//	Grab the USART1 handle.
 	UART_HandleTypeDef * pUSART = Main_Get_Modbus_UART_Handle();
 
 	//	Result of our request.
@@ -1312,6 +1313,9 @@ void ModbusSlave_Process(void)
 				if (m_aModbusSlaveInputBuffer[0] == Configuration_GetModbusAddress())
 				{
 					//	Yep, it wants us to respond.
+
+					//	Go ahead and indicate to the LED module that we're communicating.
+					LED_CommunicationUpdate();
 
 					//	Flip this to set so that we can transmit data.
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
