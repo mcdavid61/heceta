@@ -3,6 +3,8 @@
  *
  *  Created on: Jun 29, 2020
  *      Author: dmcmasters
+ *
+ *      Responsible for the debug functionality of the system.
  */
 
 #include <stdint.h>

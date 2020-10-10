@@ -11,6 +11,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+//	Configuration parameters
+
+//	TODO:	This should eventually be pulled from the linker script.
+//			I'm not as familiar with editing that, so for now, we'll hardcode the value.
+#define FAULT_CRC_FLASH_SIZE_BYTES (1024 * 128)
+#define FAULT_CRC_FLASH_SIZE_WORD (FAULT_CRC_FLASH_SIZE_BYTES / 4)
+#define FAULT_CRC_DIVISOR (16)
+#define FAULT_CRC_CALCULATE_RATE_MS (60000)
+
+
 /*
 	Enum:	Fault_T
 	Description:
@@ -32,5 +42,8 @@ void Fault_Clear(Fault_T eFault);
 bool Fault_Get(Fault_T eFault);
 uint16_t Fault_GetAll(void);
 bool Fault_OK(void);
+
+//	CRC
+void Fault_CRC_Process(void);
 
 #endif /* FAULT_H_ */

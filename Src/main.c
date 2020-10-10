@@ -31,6 +31,7 @@
 #include "Debug.h"
 #include "ModbusSlave.h"
 #include "Configuration.h"
+#include "Fault.h"
 
 /* USER CODE END Includes */
 
@@ -205,17 +206,20 @@ int main(void)
 	  Relay_Process();
 	  sequenceIndex = 2;
 
-	  LED_Process();
+	  Fault_CRC_Process();
 	  sequenceIndex = 3;
 
-	  Command_Process();
+	  LED_Process();
 	  sequenceIndex = 4;
 
-	  ModbusSlave_Process();
+	  Command_Process();
 	  sequenceIndex = 5;
 
-	  ADC_Process();
+	  ModbusSlave_Process();
 	  sequenceIndex = 6;
+
+	  ADC_Process();
+	  sequenceIndex = 7;
 
 	  HAL_IWDG_Refresh(&hiwdg);
 	  sequenceIndex = 1;
@@ -745,11 +749,6 @@ ADC_HandleTypeDef* Main_Get_ADC_Handle(void)
 	return &hadc1;
 }
 
-CRC_HandleTypeDef* Main_Get_CRC_Handle(void)
-{
-	return &hcrc;
-}
-
 /**
   * @brief  Retargets the C library printf function to the USART.
   * @param  None
@@ -765,6 +764,29 @@ PUTCHAR_PROTOTYPE
 
 	return ch;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* USER CODE END 4 */
 
