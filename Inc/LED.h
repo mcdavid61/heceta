@@ -16,11 +16,14 @@
 #ifndef _LED_H_
 #define _LED_H_
 
+#include <stdbool.h>
+
 /******************************************************************************
  * Prototypes
  */
 void LED_Process(void);
-
+bool LED_Startup_Test(void);
+void LED_CommunicationUpdate(void);
 
 #endif /* _LED_H_ */
 

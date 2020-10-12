@@ -31,6 +31,7 @@
 #include "Debug.h"
 #include "ModbusSlave.h"
 #include "Configuration.h"
+#include "Fault.h"
 
 /* USER CODE END Includes */
 
@@ -136,7 +137,6 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   DEBUG_GPIO_INIT();
-
   ModbusSlave_Init();
 
   /* Run the ADC calibration in single-ended mode */
@@ -158,9 +158,40 @@ int main(void)
 
   uint32_t UID = UUID_Get_ID();
 
+  //	Pre-execution self-test processing loop.
+  //	Responsible for running all of the self tests that occur before the system boots.
+  bool bSelfTestsNotComplete = true;
+
+  while (bSelfTestsNotComplete)
+  {
+	  bSelfTestsNotComplete = false;
+
+	  bSelfTestsNotComplete |= LED_Startup_Test();
+	  HAL_IWDG_Refresh(&hiwdg);
+  }
+
+
+
+
   printf("\n\rHeceta Relay Module v%d.%d.%d, 0x%08lX\n\r> ", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD, UID);
   Debug_Write(testString, sizeof(testString));
   sequenceIndex = 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   /* USER CODE END 2 */
 
@@ -175,13 +206,13 @@ int main(void)
 	  Relay_Process();
 	  sequenceIndex = 2;
 
-	  LED_Process();
+	  Fault_CRC_Process();
 	  sequenceIndex = 3;
 
-	  Command_Process();
+	  LED_Process();
 	  sequenceIndex = 4;
 
-	  ModbusSlave_Process();
+	  Command_Process();
 	  sequenceIndex = 5;
 
 	  SPIFlash_Process();
@@ -190,8 +221,11 @@ int main(void)
 	  EEPROM_Process();
 	  sequenceIndex = 7;
 
-	  ADC_Process();
+	  ModbusSlave_Process();
 	  sequenceIndex = 8;
+	  
+	  ADC_Process();
+	  sequenceIndex = 9;
 
 	  HAL_IWDG_Refresh(&hiwdg);
 	  sequenceIndex = 1;
@@ -721,11 +755,6 @@ ADC_HandleTypeDef* Main_Get_ADC_Handle(void)
 	return &hadc1;
 }
 
-CRC_HandleTypeDef* Main_Get_CRC_Handle(void)
-{
-	return &hcrc;
-}
-
 /**
   * @brief  Retargets the C library printf function to the USART.
   * @param  None
@@ -735,14 +764,35 @@ PUTCHAR_PROTOTYPE
 {
   /* Place your implementation of fputc here */
   /* e.g. write a character to the USART1 and Loop until the end of transmission */
-	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 0);
 	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);
-	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 1);
 
 	ITM_SendChar(ch);
 
 	return ch;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* USER CODE END 4 */
 
