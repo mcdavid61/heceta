@@ -64,12 +64,15 @@ void Error_Handler(void);
 //	the scope of the main.h file.
 extern TIM_HandleTypeDef htim2;
 extern CRC_HandleTypeDef hcrc;
+extern SPI_HandleTypeDef hspi1;
 
 #define Main_Get_Modbus_Slave_Timer_Handle() (&htim2)
 #define Main_Get_CRC_Handle() (&hcrc)
+#define Main_Get_SPI_Handle() (&hspi1)
 UART_HandleTypeDef* Main_Get_Modbus_UART_Handle(void);
 UART_HandleTypeDef* Main_Get_Command_UART_Handle(void);
 ADC_HandleTypeDef* Main_Get_ADC_Handle(void);
+
 
 
 /* USER CODE END EFP */
