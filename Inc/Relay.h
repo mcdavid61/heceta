@@ -21,7 +21,7 @@
 
 #define DRV8860_CNT (2)
 
-bool Relay_Set(uint16_t nPattern);
+bool Relay_Request(uint16_t nPattern);
 void Relay_Process(void);
 uint16_t Relay_Get(void);
 void Relay_Run_Demo();

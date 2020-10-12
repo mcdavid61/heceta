@@ -24,6 +24,7 @@
 #include "CRC.h"
 #include "Configuration.h"
 #include "LED.h"
+#include "Fault.h"
 
 //	Modbus will use its own FIFO structure.
 //	This is necessary to store whether or not it meets the appropriate
@@ -66,6 +67,9 @@ static uint32_t m_nModbusSlaveOutputBufferPos = 0;
 
 static bool m_bReadyToAcceptData = false;
 static bool m_bSendingData = false;
+
+//	Communication process status
+static uint32_t m_nModbusCommunicationTimestamp;
 
 /*
 	Function:	ModbusSlave_GrabFIFO()
@@ -1247,7 +1251,27 @@ void ModbusSlave_BuildResponse(uint8_t * pInputBuffer, uint32_t nInputBufferLen,
 	(*pOutputBufferLenUsed) = nTotalBytes;
 }
 
+/*
+	Function:	ModbusSlave_CommunicationProcess()
+	Description:
+		Responsible for managing the five-minute timeout. If we don't
+		receive any form of communication within five minutes, throw
+		a system fault.
+*/
+void ModbusSlave_CommunicationFaultProcess()
+{
+	bool bFaulted = false;
 
+	if (uwTick - m_nModbusCommunicationTimestamp > MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS)
+	{
+		//	To prevent rollover fault.
+		m_nModbusCommunicationTimestamp = uwTick - MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS;
+
+		bFaulted = true;
+	}
+
+	Fault_Set(FAULT_MODBUS, bFaulted);
+}
 
 
 
@@ -1278,6 +1302,11 @@ void ModbusSlave_Process(void)
 	//	Storage for whether or not a Modbus command is ready.
 	bool bValidModbusCommand = false;
 	bool bSent = false;
+
+	//	Process our communication status
+	//	If we haven't received any valid Modbus communication without our
+	//	timeout, trigger the fault.
+	ModbusSlave_CommunicationFaultProcess();
 
 	//	If incoming data hasn't been initialized yet, go ahead and do that.
 	//	Note that this flag could become "unset" if for whatever reason, initializing
@@ -1316,6 +1345,9 @@ void ModbusSlave_Process(void)
 
 					//	Go ahead and indicate to the LED module that we're communicating.
 					LED_CommunicationUpdate();
+
+					//	Update our own internal communication timer.
+					m_nModbusCommunicationTimestamp = uwTick;
 
 					//	Flip this to set so that we can transmit data.
 					HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);

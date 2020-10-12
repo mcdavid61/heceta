@@ -228,11 +228,11 @@ void Command_Process(void)
 					break;
 
 				case '[':
-					Relay_Set(0);
+					Relay_Request(0);
 					break;
 
 				case ']':
-					Relay_Set(0xFFFF);
+					Relay_Request(0xFFFF);
 					break;
 
 				case '1':
@@ -244,7 +244,7 @@ void Command_Process(void)
 				case '7':
 				case '8':
 				case '9':
-					Relay_Set(1 << (nIncomingChar - '1'));
+					Relay_Request(1 << (nIncomingChar - '1'));
 					break;
 
 				case 'a':
@@ -254,7 +254,7 @@ void Command_Process(void)
 				case 'e':
 				case 'f':
 				case 'g':
-					Relay_Set(1 << (nIncomingChar - 'a' + 9));
+					Relay_Request(1 << (nIncomingChar - 'a' + 9));
 					break;
 				case '?':
 				default:
