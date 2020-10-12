@@ -113,6 +113,7 @@ void Relay_Process(void)
 			//	the control register configuration.
 			DRV8860_DataRegisterWrite(m_aDR, DRV8860_CNT);
 			m_eRelayState = RELAY_DR_VERIFY;
+			break;
 		case RELAY_DR_VERIFY:
 			DRV8860_DataRegisterRead(m_aDRVerify, DRV8860_CNT);
 			if (!memcmp(m_aDRVerify, m_aDR, sizeof(DRV8860_DataRegister_T) * DRV8860_CNT))
