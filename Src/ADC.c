@@ -81,8 +81,11 @@ void ADC_Process(void)
 	//	Fault handling
 	bool b24VFault = (ADC_24V_Mon < ADC_VIN_TOLERANCE_LOW || ADC_24V_Mon > ADC_VIN_TOLERANCE_HIGH);
 	bool b3V3Fault = (ADC_3V3_Mon < ADC_3V3_TOLERANCE_LOW || ADC_3V3_Mon > ADC_3V3_TOLERANCE_HIGH);
+	bool bTemperature = ((int16_t) ADC_Temperature) < ADC_TEMPERATURE_TOLERANCE_LOW ||
+						((int16_t) ADC_Temperature) > ADC_TEMPERATURE_TOLERANCE_HIGH;
 	Fault_Set(FAULT_VOLTAGE_VIN_OUT_OF_SPEC, b24VFault);
 	Fault_Set(FAULT_VOLTAGE_3_3V_OUT_OF_SPEC, b3V3Fault);
+	Fault_Set(FAULT_TEMPERATURE, bTemperature);
 }
 
 uint16_t ADC_Get_Supply_Voltage(void)

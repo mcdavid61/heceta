@@ -28,6 +28,6 @@ typedef struct
 
 }	EEPROM_Configuration_T;
 
-
+uint16_t EEPROM_GetFaultRegisterMap(void);
 
 #endif /* EEPROM_H_ */

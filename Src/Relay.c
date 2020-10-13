@@ -115,7 +115,7 @@ void Relay_Process(void)
 
 	//	TODO:	Pull the fault relay map from the EEPROM code, once it is merged in.
 	//			This will effectively be:
-	uint16_t nRelayFaultMap = 0xF; //EEPROM_GetFaultRegisterMap();
+	uint16_t nRelayFaultMap = EEPROM_GetFaultRegisterMap();
 
 	uint16_t nResult = m_nRelayRequestMap | ((!Fault_OK()) ? nRelayFaultMap : 0);
 	Relay_Set(nResult);

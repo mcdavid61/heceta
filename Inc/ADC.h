@@ -17,6 +17,10 @@
 #define ADC_VIN_TOLERANCE_LOW 	22800
 #define ADC_VIN_TOLERANCE_HIGH 	25200
 
+//	Temperature tolerances are defined in celsius (C).
+#define ADC_TEMPERATURE_TOLERANCE_LOW 	(-25)
+#define ADC_TEMPERATURE_TOLERANCE_HIGH 	(60)
+
 #define TS30	((uint16_t*)((uint32_t)0x1FFF75A8))
 #define TS110	((uint16_t*)((uint32_t)0x1FFF75CA))
 

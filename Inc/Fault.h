@@ -34,6 +34,7 @@ typedef enum
 	FAULT_VOLTAGE_VIN_OUT_OF_SPEC,
 	FAULT_RELAY,
 	FAULT_MODBUS,
+	FAULT_TEMPERATURE,
 }	Fault_T;
 
 void Fault_Set(Fault_T eFault, bool bActive);

@@ -30,6 +30,7 @@ typedef enum
 } EEPROM_State_T;
 
 static EEPROM_State_T m_eEEPROMState = EEPROM_STATE_STARTUP_READ;
+
 /*
 	Function:	EEPROM_Process()
 	Description:
@@ -152,7 +153,7 @@ bool EEPROM_Ready(void)
 		Returns the present fault map, as we believe
 		it is stored in the EEPROM.
 */
-uint16_t EEPROM_GetFaultRegisterMap()
+uint16_t EEPROM_GetFaultRegisterMap(void)
 {
 	return EEPROM_Ready() ? m_sEEPROMConfiguration.nFaultRegisterMap : 0;
 }
