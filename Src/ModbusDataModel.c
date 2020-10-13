@@ -122,7 +122,7 @@ ModbusException_T ModbusDataModel_ReadHoldingRegister(uint16_t nAddress, uint16_
 
 	(void) pWriteFunction;
 
-	//	Using the header file, determine where we can read the coil
+	//	Using the header file, determine where we can read the register
 	//	requested. If it's not defined, the function will remain NULL.
 	switch(nAddress)
 	{
@@ -177,11 +177,11 @@ ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16
 	//	Holding values, to store the read/write functions.
 	//	These define the format of the functions.
 	uint16_t (*pReadFunction)(void) = NULL;
-	bool (*pWriteFunction)(uint16_t nValue) = NULL;
+	ModbusException_T (*pWriteFunction)(uint16_t nValue) = NULL;
 
 	(void) pReadFunction;
 
-	//	Using the header file, determine where we can write the register
+	//	Using the header file, determine where we can read the register
 	//	requested. If it's not defined, the function will remain NULL.
 	switch(nAddress)
 	{
@@ -198,15 +198,10 @@ ModbusException_T ModbusDataModel_WriteHoldingRegister(uint16_t nAddress, uint16
 		//	and attempt to write it.
 		//	If the value was invalid, the write function will return false
 		//	and thus, we'll throw an illegal data value error.
-		bool bValueWriteOK;
 		if (nValue != NULL)
 		{
-			bValueWriteOK = pWriteFunction((*nValue));
+			eReturn = pWriteFunction((*nValue));
 		}
-
-		//	This was successful, as far as this function is concerned.
-		//	Go ahead and set this function's return value to OK.
-		eReturn = bValueWriteOK ? MODBUS_EXCEPTION_OK : MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 	}
 	else
 	{
@@ -297,7 +292,7 @@ bool ModbusDataModel_ReadObjectIDHelper_Str(uint8_t * pBuffer, int nBufferLen,	u
 	uint16_t nStrLen;
 	if (pStr != NULL)
 	{
-		nStrLen = strlen(pStr);
+		nStrLen = strlen((char *) pStr);
 	}
 
 	//	If the buffer is not NULL and the buffer length is large enough, go ahead

@@ -16,6 +16,7 @@
 #define CHARACTER_BITS  (8)
 
 #include "Version.h"
+#include "ModbusSlave.h"
 
 //	Static configuration variables
 #define TERM(T) T"\0"
@@ -27,6 +28,7 @@
 #define MAJOR_MINOR_REV QUOTE_EXP(SOFTWARE_VERSION_MAJOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_MINOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_BUILD)"\0"
+#define CONFIGURATION_PARAMETER_UNLOCK_CODE (1234)
 /*
 	Structure:	ModbusConfiguration_T
 	Description:
@@ -43,7 +45,7 @@ typedef struct
 	uint8_t nStopBits;
 
 	//	Fault relay map
-	uint16_t nFaultRelayMap;
+	//	Stored as a uint16_t in EEPROM module
 
 	//	Parameter Unlock Code
 	uint16_t nParameterUnlockCode;
@@ -76,19 +78,19 @@ uint16_t Configuration_GetParity(void);
 uint16_t Configuration_GetStopBits(void);
 uint16_t Configuration_GetMessageLength(void);
 
-bool Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap);
+ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap);
 uint16_t Configuration_GetFaultRelayMap();
 
 
-bool Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode);
+ModbusException_T Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode);
 uint16_t Configuration_GetParameterUnlockCode(void);
 
-bool Configuration_SetManualOverrideEnabled(uint16_t nValue);
+ModbusException_T Configuration_SetManualOverrideEnabled(uint16_t nValue);
 uint16_t Configuration_GetManualOverrideEnabled(void);
 
-bool Configuration_SetGreenLED(uint16_t nValue);
-bool Configuration_SetRedLED(uint16_t nValue);
-bool Configuration_SetAmberLED(uint16_t nValue);
+ModbusException_T Configuration_SetGreenLED(uint16_t nValue);
+ModbusException_T Configuration_SetRedLED(uint16_t nValue);
+ModbusException_T Configuration_SetAmberLED(uint16_t nValue);
 uint16_t Configuration_GetGreenLED(void);
 uint16_t Configuration_GetRedLED(void);
 uint16_t Configuration_GetAmberLED(void);

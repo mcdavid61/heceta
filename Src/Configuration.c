@@ -8,6 +8,7 @@
 #include "Switches.h"
 #include "Configuration.h"
 #include "Version.h"
+#include "ModbusSlave.h"
 
 //	The active Modbus configuration in use.
 //	This is what all accessors and modules will reference in order
@@ -127,16 +128,21 @@ uint16_t Configuration_GetMessageLength(void)
 */
 uint16_t Configuration_GetFaultRelayMap()
 {
-	return m_sModbusConfiguration.nFaultRelayMap;
+	return EEPROM_GetFaultRegisterMap();
 }
-bool Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap)
+ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap)
 {
-	//	TODO:	There needs to be a check here in order to ensure that
-	//			the Heceta Relay Module has the correct parameter unlock code.
-	//			If the correct parameter unlock code hasn't been inputted, then
-	//			this should return false and not change.
-	m_sModbusConfiguration.nFaultRelayMap = nFaultRelayMap;
-	return true;
+	//	By default, we only allow setting this parameter if
+	//	the correct parameter unlock lock has been specified.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
+
+	if (m_sModbusConfiguration.nParameterUnlockCode == CONFIGURATION_PARAMETER_UNLOCK_CODE)
+	{
+		EEPROM_SetFaultRegisterMap(nFaultRelayMap);
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+
+	return eReturn;
 }
 
 /*
@@ -149,10 +155,10 @@ uint16_t Configuration_GetParameterUnlockCode(void)
 {
 	return m_sModbusConfiguration.nParameterUnlockCode;
 }
-bool Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode)
+ModbusException_T Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode)
 {
 	m_sModbusConfiguration.nParameterUnlockCode = nParameterUnlockCode;
-	return true;
+	return MODBUS_EXCEPTION_OK;
 }
 
 
@@ -165,63 +171,63 @@ bool Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode)
 		Allows the MODBUS master to enable the manual override enable flag.
 		Returns true or false depending on whether the value was allowed to be written.
 */
-bool Configuration_SetManualOverrideEnabled(uint16_t nValue)
+ModbusException_T Configuration_SetManualOverrideEnabled(uint16_t nValue)
 {
 	//	Return value.
-	bool bReturn = false;
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
 	//	Is nValue equal to zero or one?
 	if (nValue <= 1)
 	{
 		m_sManualOutputConfiguration.bEnabled = (bool) nValue;
-		bReturn = true;
+		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
-	return bReturn;
+	return eReturn;
 }
 uint16_t Configuration_GetManualOverrideEnabled(void)
 {
 	return m_sManualOutputConfiguration.bEnabled;
 }
 
-bool Configuration_SetGreenLED(uint16_t nValue)
+ModbusException_T Configuration_SetGreenLED(uint16_t nValue)
 {
 	//	Return value.
-	bool bReturn = false;
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
 	if (nValue <= 1)
 	{
 		m_sManualOutputConfiguration.bGreenLED = (bool) nValue;
-		bReturn = true;
+		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
-	return bReturn;
+	return eReturn;
 }
-bool Configuration_SetRedLED(uint16_t nValue)
+ModbusException_T Configuration_SetRedLED(uint16_t nValue)
 {
 	//	Return value.
-	bool bReturn = false;
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
 	if (nValue <= 1)
 	{
 		m_sManualOutputConfiguration.bRedLED = (bool) nValue;
-		bReturn = true;
+		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
-	return bReturn;
+	return eReturn;
 }
-bool Configuration_SetAmberLED(uint16_t nValue)
+ModbusException_T Configuration_SetAmberLED(uint16_t nValue)
 {
 	//	Return value.
-	bool bReturn = false;
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
 	if (nValue <= 1)
 	{
 		m_sManualOutputConfiguration.bAmberLED = (bool) nValue;
-		bReturn = true;
+		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
-	return bReturn;
+	return eReturn;
 }
 uint16_t Configuration_GetGreenLED(void)
 {

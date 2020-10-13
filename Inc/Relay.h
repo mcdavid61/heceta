@@ -18,10 +18,11 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include "ModbusSlave.h"
 
 #define DRV8860_CNT (2)
 
-bool Relay_Request(uint16_t nPattern);
+ModbusException_T Relay_Request(uint16_t nPattern);
 void Relay_Process(void);
 uint16_t Relay_Get(void);
 void Relay_Run_Demo();

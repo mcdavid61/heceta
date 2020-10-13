@@ -12,7 +12,7 @@
 #include "stm32l4xx_hal.h"
 
 #define MODBUS_SLAVE_TIMER htim2
-#define MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS (5 * 60000)
+#define MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS (5 * 1000)
 
 typedef enum
 {

@@ -66,10 +66,10 @@ static uint8_t m_nFaultCounter = 0;
 		for the end result to be different due to fault relays being
 		activated and what not.
 */
-bool Relay_Request(uint16_t nPattern)
+ModbusException_T Relay_Request(uint16_t nPattern)
 {
 	m_nRelayRequestMap = nPattern;
-	return true;
+	return MODBUS_EXCEPTION_OK;
 }
 
 
