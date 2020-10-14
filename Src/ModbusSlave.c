@@ -1275,7 +1275,37 @@ void ModbusSlave_CommunicationFaultProcess()
 
 
 
+/*
+	Function:	ModbusSlave_VerifyUSARTReady
+	Description:
+		Verification function to ensure that the USART
+		is in an expected state to receive data. If it is not,
+		we'll "unset" the m_bReadyToAccept data flag.
+*/
+void ModbusSlave_VerifyUSARTReady()
+{
+	//	We'll assume everything is OK, until it is not.
+	bool bOK = true;
 
+	if (m_bReadyToAcceptData)
+	{
+		//	Grab the pointer to the USART.
+		UART_HandleTypeDef * pUSART = Main_Get_Modbus_UART_Handle();
+
+		//	Verify that the parameters are correct.
+
+		//	Ensure that the RXNEIE (Receive Not Empty Interrupt) is enabled.
+		bOK &= !!(pUSART->Instance->CR1 & USART_CR1_RXNEIE);
+
+		//	Ensure that the ErrorCode is set to zero.
+		bOK &= !!(pUSART->ErrorCode == 0);
+
+		if (!bOK)
+		{
+			m_bReadyToAcceptData = false;
+		}
+	}
+}
 
 
 
@@ -1307,6 +1337,11 @@ void ModbusSlave_Process(void)
 	//	If we haven't received any valid Modbus communication without our
 	//	timeout, trigger the fault.
 	ModbusSlave_CommunicationFaultProcess();
+
+	//	TODO:	We need to implement some sort of check of the USART
+	//			that verifies that it is running and not in an error state.
+	//			What's the best way to do this?
+	ModbusSlave_VerifyUSARTReady();
 
 	//	If incoming data hasn't been initialized yet, go ahead and do that.
 	//	Note that this flag could become "unset" if for whatever reason, initializing

@@ -24,7 +24,7 @@
 
 #define LED_COMM_MZ_TIMEOUT	5000
 #define LED_TICK_INCREMENT	500
-#define LED_COMM_TIME 500
+#define LED_COMM_TIME 250
 #define LED_COMM_FLASH 75
 
 //	Timestamp for when the last Modbus data was sent out.

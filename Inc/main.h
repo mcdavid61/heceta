@@ -65,15 +65,16 @@ void Error_Handler(void);
 extern TIM_HandleTypeDef htim2;
 extern CRC_HandleTypeDef hcrc;
 extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart3;
+extern ADC_HandleTypeDef hadc1;
 
-#define Main_Get_Modbus_Slave_Timer_Handle() (&htim2)
-#define Main_Get_CRC_Handle() (&hcrc)
-#define Main_Get_SPI_Handle() (&hspi1)
-UART_HandleTypeDef* Main_Get_Modbus_UART_Handle(void);
-UART_HandleTypeDef* Main_Get_Command_UART_Handle(void);
-ADC_HandleTypeDef* Main_Get_ADC_Handle(void);
-
-
+#define Main_Get_Modbus_Slave_Timer_Handle() 	(&htim2)
+#define Main_Get_CRC_Handle() 					(&hcrc)
+#define Main_Get_SPI_Handle() 					(&hspi1)
+#define Main_Get_Modbus_UART_Handle() 			(&huart1)
+#define Main_Get_Command_UART_Handle() 			(&huart3)
+#define Main_Get_ADC_Handle() 					(&hadc1)
 
 /* USER CODE END EFP */
 

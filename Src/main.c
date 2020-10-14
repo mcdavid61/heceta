@@ -177,7 +177,7 @@ int main(void)
   Debug_Write(testString, sizeof(testString));
   sequenceIndex = 1;
 
-
+  HAL_IWDG_Refresh(&hiwdg);
 
 
 
@@ -745,18 +745,7 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-UART_HandleTypeDef* Main_Get_Modbus_UART_Handle(void)
-{
-	return &huart1;
-}
-UART_HandleTypeDef* Main_Get_Command_UART_Handle(void)
-{
-	return &huart3;
-}
-ADC_HandleTypeDef* Main_Get_ADC_Handle(void)
-{
-	return &hadc1;
-}
+
 
 /**
   * @brief  Retargets the C library printf function to the USART.
@@ -775,28 +764,6 @@ PUTCHAR_PROTOTYPE
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* USER CODE END 4 */
 
 /**
@@ -807,7 +774,7 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-
+	printf("There was an error!");
   /* USER CODE END Error_Handler_Debug */
 }
 
