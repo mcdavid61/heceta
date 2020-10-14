@@ -224,8 +224,11 @@ int main(void)
 	  ModbusSlave_Process();
 	  sequenceIndex = 8;
 	  
-	  ADC_Process();
+	  Configuration_Process();
 	  sequenceIndex = 9;
+
+	  ADC_Process();
+	  sequenceIndex = 10;
 
 	  HAL_IWDG_Refresh(&hiwdg);
 	  sequenceIndex = 1;

@@ -1265,7 +1265,7 @@ void ModbusSlave_CommunicationFaultProcess()
 	if (uwTick - m_nModbusCommunicationTimestamp > MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS)
 	{
 		//	To prevent rollover fault.
-		m_nModbusCommunicationTimestamp = uwTick - MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS;
+		m_nModbusCommunicationTimestamp = uwTick - MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS - 1;
 
 		bFaulted = true;
 	}

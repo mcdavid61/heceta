@@ -64,6 +64,27 @@ void Configuration_Init(void)
 }
 
 /*
+	Function:	Configuration_Process()
+	Description:
+		Process function for the configuration.
+		Solely responsible for the timeout functionality.
+*/
+void Configuration_Process(void)
+{
+	//	Parameter unlock code reset after CONFIGURATION_PARAMETER_UNLOCK_TIMEOUT_MS.
+	if (uwTick - m_sModbusConfiguration.nParameterUnlockTimeout > CONFIGURATION_PARAMETER_UNLOCK_TIMEOUT_MS)
+	{
+		m_sModbusConfiguration.nParameterUnlockCode = 0;
+	}
+
+	//	Manual override timer
+	if (uwTick - m_sManualOutputConfiguration.nTimeout > CONFIGURATION_MANUAL_OUTPUT_TIMEOUT_MS)
+	{
+		m_sManualOutputConfiguration.bEnabled = false;
+	}
+}
+
+/*
 	Function:	Configuration_GetModbusAddress()
 	Description:
 		Returns the Modbus address.
@@ -138,6 +159,9 @@ ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap)
 
 	if (m_sModbusConfiguration.nParameterUnlockCode == CONFIGURATION_PARAMETER_UNLOCK_CODE)
 	{
+		//	Reset the timer.
+		m_sModbusConfiguration.nParameterUnlockTimeout = uwTick;
+
 		EEPROM_SetFaultRegisterMap(nFaultRelayMap);
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
@@ -158,6 +182,11 @@ uint16_t Configuration_GetParameterUnlockCode(void)
 ModbusException_T Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode)
 {
 	m_sModbusConfiguration.nParameterUnlockCode = nParameterUnlockCode;
+
+	//	The nParameterUnlockCode has a timeout window. Once this timeout window is
+	//	exceeded-- restore the parameter unlock code to zero.
+	m_sModbusConfiguration.nParameterUnlockTimeout = uwTick;
+
 	return MODBUS_EXCEPTION_OK;
 }
 
@@ -180,6 +209,7 @@ ModbusException_T Configuration_SetManualOverrideEnabled(uint16_t nValue)
 	if (nValue <= 1)
 	{
 		m_sManualOutputConfiguration.bEnabled = (bool) nValue;
+		m_sManualOutputConfiguration.nTimeout = uwTick;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
@@ -195,8 +225,12 @@ ModbusException_T Configuration_SetGreenLED(uint16_t nValue)
 	//	Return value.
 	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
-	if (nValue <= 1)
+	if (nValue <= 1 && Configuration_GetManualOverrideEnabled())
 	{
+		//	Reset manual override enabled to "true".
+		//	This resets the timeout.
+		Configuration_SetManualOverrideEnabled(true);
+
 		m_sManualOutputConfiguration.bGreenLED = (bool) nValue;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
@@ -208,8 +242,12 @@ ModbusException_T Configuration_SetRedLED(uint16_t nValue)
 	//	Return value.
 	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
-	if (nValue <= 1)
+	if (nValue <= 1 && Configuration_GetManualOverrideEnabled())
 	{
+		//	Reset manual override enabled to "true".
+		//	This resets the timeout.
+		Configuration_SetManualOverrideEnabled(true);
+
 		m_sManualOutputConfiguration.bRedLED = (bool) nValue;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
@@ -221,8 +259,12 @@ ModbusException_T Configuration_SetAmberLED(uint16_t nValue)
 	//	Return value.
 	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
-	if (nValue <= 1)
+	if (nValue <= 1 && Configuration_GetManualOverrideEnabled())
 	{
+		//	Reset manual override enabled to "true".
+		//	This resets the timeout.
+		Configuration_SetManualOverrideEnabled(true);
+
 		m_sManualOutputConfiguration.bAmberLED = (bool) nValue;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}

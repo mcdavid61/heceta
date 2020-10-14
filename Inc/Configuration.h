@@ -28,7 +28,10 @@
 #define MAJOR_MINOR_REV QUOTE_EXP(SOFTWARE_VERSION_MAJOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_MINOR)"."\
                         QUOTE_EXP(SOFTWARE_VERSION_BUILD)"\0"
+
 #define CONFIGURATION_PARAMETER_UNLOCK_CODE (1234)
+#define CONFIGURATION_PARAMETER_UNLOCK_TIMEOUT_MS (1 * 60000)
+#define CONFIGURATION_MANUAL_OUTPUT_TIMEOUT_MS (1 * 60000)
 /*
 	Structure:	ModbusConfiguration_T
 	Description:
@@ -49,6 +52,7 @@ typedef struct
 
 	//	Parameter Unlock Code
 	uint16_t nParameterUnlockCode;
+	uint32_t nParameterUnlockTimeout;
 
 }	ModbusConfiguration_T;
 
@@ -61,6 +65,7 @@ typedef struct
 typedef struct
 {
 	//	Whether or not these status overrides are enabled.
+	uint32_t nTimeout;
 	bool bEnabled;
 
 	//	The override values.
@@ -71,6 +76,7 @@ typedef struct
 }	ManualOutputConfiguration_T;
 
 void Configuration_Init(void);
+void Configuration_Process(void);
 uint16_t Configuration_GetModbusAddress(void);
 uint16_t Configuration_GetBaudRate(void);
 uint16_t Configuration_IsBaudRate19200();

@@ -113,13 +113,16 @@ void Relay_Process(void)
 	//		Otherwise, the DR simply consists of the relays requested.
 	//			DR = nRelaysRequested;
 
-	//	TODO:	Pull the fault relay map from the EEPROM code, once it is merged in.
-	//			This will effectively be:
-	uint16_t nRelayFaultMap = EEPROM_GetFaultRegisterMap();
+	//	Are in a fault state?
+	//	If we are, pull the Fault Register map from the EEPROM.
+	bool bFaulted = !Fault_OK();
+	uint16_t nRelayFaultMap = bFaulted ? EEPROM_GetFaultRegisterMap() : 0;
 
-	uint16_t nResult = m_nRelayRequestMap | ((!Fault_OK()) ? nRelayFaultMap : 0);
+	//	Build the result.
+	uint16_t nResult = m_nRelayRequestMap | nRelayFaultMap;
+
+	//	Set the relays.
 	Relay_Set(nResult);
-
 
 	//	Component #2:	State Machine Processing
 	//		Handles the actual verification/write process
