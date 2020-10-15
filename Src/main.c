@@ -32,6 +32,7 @@
 #include "ModbusSlave.h"
 #include "Configuration.h"
 #include "Fault.h"
+#include "RAMIntegrity.h"
 
 /* USER CODE END Includes */
 
@@ -97,6 +98,7 @@ static void MX_TIM2_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+
 /* USER CODE END 0 */
 
 /**
@@ -115,6 +117,11 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+
+  //	We need to do a memory check here--what's the best way to approach this?
+  bool bPass = RAMIntegrity_Process();
+
+
 
   /* USER CODE END Init */
 
