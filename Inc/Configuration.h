@@ -71,10 +71,11 @@ typedef struct
 {
 	//	Timeouts for various things
 	uint32_t nRebootRequestTimestamp;
-	uint32_t nFactoryResetTimestamp;
+	uint32_t nFactoryResetRequestTimestamp;
 	uint32_t nTimeout;
 
 	//	Whether or not these status overrides are enabled.
+	bool bModuleDisable;
 	bool bRebootRequest;
 	bool bFactoryResetRequest;
 	bool bOverrideEnabled;
@@ -84,7 +85,7 @@ typedef struct
 	bool bRedLED;
 	bool bAmberLED;
 
-}	ManualOutputConfiguration_T;
+}	ModuleConfiguration_T;
 
 void Configuration_Init(void);
 void Configuration_Process(void);
@@ -116,11 +117,6 @@ uint16_t Configuration_GetMajorVersion(void);
 uint16_t Configuration_GetMinorVersion(void);
 uint16_t Configuration_GetBuildVersion(void);
 
-uint16_t Configuration_GetControllerUID_1_2(void);
-uint16_t Configuration_GetControllerUID_3_4(void);
-uint16_t Configuration_GetControllerUID_5_6(void);
-uint16_t Configuration_GetControllerUID_7_8(void);
-
 bool Configuration_MB_VendorName(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
 bool Configuration_MB_ProductCode(uint8_t * pBuffer, uint8_t nBufferLen, uint16_t * nBufferUsed);
 bool Configuration_MB_MajorMinorRevision(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
@@ -129,5 +125,7 @@ ModbusException_T Configuration_SetRestart(uint16_t nRestart);
 uint16_t Configuration_GetRestart(void);
 ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset);
 uint16_t Configuration_GetFactoryReset(void);
+ModbusException_T Configuration_SetModuleDisable(uint16_t nDisabled);
+uint16_t Configuration_GetModuleDisable(void);
 
 #endif /* CONFIGURATION_H_ */

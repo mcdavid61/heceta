@@ -44,6 +44,7 @@ void Fault_Clear(Fault_T eFault);
 bool Fault_Get(Fault_T eFault);
 uint16_t Fault_GetAll(void);
 bool Fault_OK(void);
+uint16_t Fault_NotOK(void);
 
 //	CRC
 void Fault_CRC_Process(void);

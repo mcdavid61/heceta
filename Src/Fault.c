@@ -65,11 +65,15 @@ uint16_t Fault_GetAll()
 	Function:	Fault_OK
 	Description:
 		Returns the overall fault state of the system.
-		If there are any faults that are not okay,
+		If there are any faults that are not okay, false.
 */
 bool Fault_OK(void)
 {
 	return !m_nFault;
+}
+uint16_t Fault_NotOK(void)
+{
+	return !!m_nFault;
 }
 
 //	CRC Module
@@ -148,16 +152,11 @@ void Fault_CRC_Process(void)
 
 				//	Go to the IDLE state.
 				m_eFaultCRCState = FAULTCRCSTATE_IDLE;
-
-				//	DEBUG:	Print out success.
-				printf("[CRC] Passed.\r\n");
 			}
 			else
 			{
 				//	Failure handler.
-				printf("[CRC] Failed.\r\n");
-				//	TODO:	Implement.
-				while(1);
+				Fault_Activate(FAULT_SYSTEM_FIRMWARE);
 			}
 			break;
 		case FAULTCRCSTATE_IDLE:

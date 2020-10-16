@@ -50,12 +50,6 @@ static uint8_t m_nSR = {0};
 //	In the format of:	[Byte 0 (OPCODE)] [Byte 1 (UpperAddr)] [Byte 2 (LowerAddr)]
 static uint8_t m_aCommandBuffer[3] = {0};
 
-//	Data buffer
-//	TODO:	Determine if it's worth it for us to internally have a data buffer.
-//			I personally don't believe that it's worth it for us to.
-//	static uint8_t m_aSPIDataBuffer[SPIFLASH_PAGE_SIZE];  	//	Outgoing Data / Incoming Data
-
-
 //	Debug code
 //	#define DEBUG_SPIFLASH_CONSTANT_READS_AND_WRITES
 #ifdef DEBUG_SPIFLASH_CONSTANT_READS_AND_WRITES
@@ -82,7 +76,7 @@ static uint8_t m_aCommandBuffer[3] = {0};
 */
 void SPIStep_ReadStatusRegisterCommand(SPIStep_T * pStep)
 {
-	pStep->pTransmitData = &m_nRDSR;
+	pStep->pTransmitData = (void *) &m_nRDSR;
 	pStep->pReceiveData = NULL;
 	pStep->nByteCount = 1;
 	pStep->bSetCSHigh = false;
@@ -94,7 +88,7 @@ void SPIStep_ReadStatusRegisterCommand(SPIStep_T * pStep)
 */
 void SPIStep_WriteEnable(SPIStep_T * pStep, bool bEnable)
 {
-	pStep->pTransmitData = bEnable ? &m_nWREN : &m_nWRDI;
+	pStep->pTransmitData = bEnable ? (void *) &m_nWREN : (void *) &m_nWRDI;
 	pStep->pReceiveData = NULL;
 	pStep->nByteCount = 1;
 	pStep->bSetCSHigh = true;

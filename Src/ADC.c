@@ -5,9 +5,11 @@
  *      Author: dmcmasters
  */
 
+#include <stdbool.h>
 #include "ADC.h"
 #include "main.h"
 #include "Fault.h"
+
 
 #define ADC_TICK_INCREMENT    250
 
@@ -124,7 +126,7 @@ uint16_t ADC_Get_Temperature(void)
 	Description:
 		Returns a boolean, indicating whether the startup tasks are complete.
 */
-bool ADC_StartupTasksComplete()
+bool ADC_StartupTasksComplete(void)
 {
 	return (!m_nADCValuesOK);
 }

@@ -16,7 +16,7 @@
 //	This is what all accessors and modules will reference in order
 //	to determine output parameters, timing, etc.
 ModbusConfiguration_T m_sModbusConfiguration = {0};
-ManualOutputConfiguration_T m_sManualOutputConfiguration = {0};
+ModuleConfiguration_T m_sManualOutputConfiguration = {0};
 
 /*
 	Function:	Configuration_Init()
@@ -90,6 +90,14 @@ void Configuration_Process(void)
 			(uwTick - m_sManualOutputConfiguration.nRebootRequestTimestamp > CONFIGURATION_RESTART_TIMEOUT_MS))
 	{
 		NVIC_SystemReset();
+	}
+
+	//	Factory Reset timer
+	if (m_sManualOutputConfiguration.bFactoryResetRequest &&
+			(uwTick - m_sManualOutputConfiguration.nFactoryResetRequestTimestamp > CONFIGURATION_FACTORY_RESTART_TIMEOUT_MS))
+	{
+		EEPROM_SetFaultRegisterMap(0);
+		m_sManualOutputConfiguration.bFactoryResetRequest = false;
 	}
 }
 
@@ -355,7 +363,7 @@ ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset)
 	if (nFactoryReset <= 1)
 	{
 		m_sManualOutputConfiguration.bFactoryResetRequest = (bool) nFactoryReset;
-		m_sManualOutputConfiguration.nFactoryResetTimestamp = uwTick;
+		m_sManualOutputConfiguration.nFactoryResetRequestTimestamp = uwTick;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
 
@@ -366,7 +374,31 @@ uint16_t Configuration_GetFactoryReset(void)
 	return m_sManualOutputConfiguration.bFactoryResetRequest;
 }
 
+/*
+	Function:	Configuration_SetModuleDisable()
+	Description:
+		Sets the module disable flag. Has varying effects on the system, such as:
+		-	Immediately disables all relays upon next program cycle.
+		-	Immediately disables the MZ communication timeout.
+		-	Clears the requested relay map entirely. Does not allow relays to be requested.
+*/
+ModbusException_T Configuration_SetModuleDisable(uint16_t nDisabled)
+{
+	//	Return value.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
+	if (nDisabled <= 1)
+	{
+		m_sManualOutputConfiguration.bModuleDisable = (bool) nDisabled;
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+
+	return eReturn;
+}
+uint16_t Configuration_GetModuleDisable(void)
+{
+	return m_sManualOutputConfiguration.bModuleDisable;
+}
 
 
 

@@ -111,34 +111,8 @@ void LED_Process(void)
 
 		}
 
-		//	Configure the red LED, based on how long it has been since we've heard
-		//	from the MZ module.
-		if (uwTick - m_nCommunicationTimestamp > LED_COMM_MZ_TIMEOUT)
-		{
-			//	We've lost communication with the MZ. Go ahead and activate the LED.
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-
-			//	Additionally, update the m_nCommunicationTimestamp to reflect this "past state"
-			//	Set the communication clock to the past-- this helps avoid overflow if for whatever
-			//	reason we lose communication for a long period of time.
-			m_nCommunicationTimestamp = (uwTick - LED_COMM_MZ_TIMEOUT - 1);
-		}
-		else
-		{
-			//	Communication has been restored. Go ahead and clear this.
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-		}
-
-		/*
-		if (Command_Has_Comm_Timed_Out())
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-		}
-		*/
+		//	Configure the red LED, based on whether or not the FAULT_MODBUS bit is set.
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, Fault_Get(FAULT_MODBUS));
 	}
 	#endif
 
@@ -207,7 +181,7 @@ void LED_Startup_Process(void)
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 		bRed);
 }
 
-bool LED_StartupTasksComplete()
+bool LED_StartupTasksComplete(void)
 {
 	return m_bStartupTasksComplete;
 }
