@@ -38,7 +38,7 @@ static EEPROM_State_T m_eEEPROMState = EEPROM_STATE_STARTUP_READ;
 		for example, when data changes and needs to be updated
 		in flash.
 */
-void EEPROM_Process()
+void EEPROM_Process(void)
 {
 	switch(m_eEEPROMState)
 	{
@@ -64,7 +64,7 @@ void EEPROM_Process()
 					memset(&m_sEEPROMConfiguration, 0, sizeof(m_sEEPROMConfiguration));
 					m_bEEPROMConfigurationDirty = true;
 				}
-				m_eEEPROMState = EEPROM_STATE_IDLE;
+				m_eEEPROMState = m_bEEPROMConfigurationDirty ? EEPROM_STATE_WRITE : EEPROM_STATE_IDLE;
 			}
 			break;
 		case EEPROM_STATE_IDLE:

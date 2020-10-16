@@ -32,6 +32,8 @@
 #include "ModbusSlave.h"
 #include "Configuration.h"
 #include "Fault.h"
+#include "EEPROM.h"
+#include "SPIFlash.h"
 #include "RAMIntegrity.h"
 
 /* USER CODE END Includes */
@@ -118,11 +120,6 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
-  //	We need to do a memory check here--what's the best way to approach this?
-  bool bPass = RAMIntegrity_Process();
-
-
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -165,39 +162,49 @@ int main(void)
 
   uint32_t UID = UUID_Get_ID();
 
+  //	Flow of execution
+  //		-	Pre-main loop self-tests
+  //		-	Enter main loop, whether a failure occurs or not.
+
   //	Pre-execution self-test processing loop.
   //	Responsible for running all of the self tests that occur before the system boots.
   bool bSelfTestsNotComplete = true;
-
   while (bSelfTestsNotComplete)
   {
 	  bSelfTestsNotComplete = false;
 
-	  bSelfTestsNotComplete |= LED_Startup_Test();
+	  //	LED Startup Test
+	  LED_Startup_Process();
+
+	  //	RAM Integrity Test
+	  RAMIntegrity_Process();
+
+	  //	ADC Tests
+	  //	-	3V3
+	  //	-	24V
+	  //	-	Temperature
+	  ADC_Process();
+
+	  //	Flash CRC Test
+	  Fault_CRC_Process();
+
+	  bSelfTestsNotComplete = !(	LED_StartupTasksComplete()
+			  	  	  	  	  &&	RAMIntegrity_StartupTasksComplete()
+							  &&	ADC_StartupTasksComplete()
+			 				  &&	Fault_CRC_StartupTasksComplete()	);
+
 	  HAL_IWDG_Refresh(&hiwdg);
   }
 
+  //	Upon completion of the self-checks, reset the uwTick to zero.
+  uwTick = 0;
 
-
-
+  printf("\n\rAll set? All clear--dispatch. [Self-Test Complete]\n\r");
   printf("\n\rHeceta Relay Module v%d.%d.%d, 0x%08lX\n\r> ", SOFTWARE_VERSION_MAJOR, SOFTWARE_VERSION_MINOR, SOFTWARE_VERSION_BUILD, UID);
-  Debug_Write(testString, sizeof(testString));
   sequenceIndex = 1;
 
+  //	Refresh the watchdog, just one more time.
   HAL_IWDG_Refresh(&hiwdg);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   /* USER CODE END 2 */
@@ -216,26 +223,29 @@ int main(void)
 	  Fault_CRC_Process();
 	  sequenceIndex = 3;
 
-	  LED_Process();
+	  RAMIntegrity_Process();
 	  sequenceIndex = 4;
 
-	  Command_Process();
+	  LED_Process();
 	  sequenceIndex = 5;
 
-	  SPIFlash_Process();
+	  Command_Process();
 	  sequenceIndex = 6;
 
-	  EEPROM_Process();
+	  SPIFlash_Process();
 	  sequenceIndex = 7;
 
-	  ModbusSlave_Process();
+	  EEPROM_Process();
 	  sequenceIndex = 8;
+
+	  ModbusSlave_Process();
+	  sequenceIndex = 9;
 	  
 	  Configuration_Process();
-	  sequenceIndex = 9;
+	  sequenceIndex = 10;
 
 	  ADC_Process();
-	  sequenceIndex = 10;
+	  sequenceIndex = 11;
 
 	  HAL_IWDG_Refresh(&hiwdg);
 	  sequenceIndex = 1;
@@ -781,6 +791,8 @@ void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
+
+	//	TODO:	Implement a better error handler here, other than simply printing this.
 	printf("There was an error!");
   /* USER CODE END Error_Handler_Debug */
 }

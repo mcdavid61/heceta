@@ -22,7 +22,7 @@
  * Prototypes
  */
 void LED_Process(void);
-bool LED_Startup_Test(void);
+void LED_Startup_Process(void);
 void LED_CommunicationUpdate(void);
 
 #endif /* _LED_H_ */

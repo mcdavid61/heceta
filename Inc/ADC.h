@@ -21,6 +21,9 @@
 #define ADC_TEMPERATURE_TOLERANCE_LOW 	(-25)
 #define ADC_TEMPERATURE_TOLERANCE_HIGH 	(60)
 
+//	Number of iterations required before we report back ADC results
+#define ADC_ITERATIONS (1)
+
 #define TS30	((uint16_t*)((uint32_t)0x1FFF75A8))
 #define TS110	((uint16_t*)((uint32_t)0x1FFF75CA))
 

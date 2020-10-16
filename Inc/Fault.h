@@ -35,6 +35,7 @@ typedef enum
 	FAULT_RELAY,
 	FAULT_MODBUS,
 	FAULT_TEMPERATURE,
+	FAULT_RAM_INTEGRITY,
 }	Fault_T;
 
 void Fault_Set(Fault_T eFault, bool bActive);
@@ -46,5 +47,6 @@ bool Fault_OK(void);
 
 //	CRC
 void Fault_CRC_Process(void);
+bool Fault_CRC_StartupTasksComplete(void);
 
 #endif /* FAULT_H_ */

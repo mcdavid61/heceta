@@ -177,7 +177,7 @@ void Fault_CRC_Process(void)
 		Returns true or false when the CRC has been verified to be correct at least once.
 		This is used on startup to ensure we're running a valid configuration.
 */
-bool Fault_CRC_Ready()
+bool Fault_CRC_StartupTasksComplete(void)
 {
 	return m_bFaultCRCStartupPass;
 }

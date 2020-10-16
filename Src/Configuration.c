@@ -9,6 +9,8 @@
 #include "Configuration.h"
 #include "Version.h"
 #include "ModbusSlave.h"
+#include "EEPROM.h"
+#include "core_cm4.h"
 
 //	The active Modbus configuration in use.
 //	This is what all accessors and modules will reference in order
@@ -80,7 +82,14 @@ void Configuration_Process(void)
 	//	Manual override timer
 	if (uwTick - m_sManualOutputConfiguration.nTimeout > CONFIGURATION_MANUAL_OUTPUT_TIMEOUT_MS)
 	{
-		m_sManualOutputConfiguration.bEnabled = false;
+		m_sManualOutputConfiguration.bOverrideEnabled = false;
+	}
+
+	//	Restart timer
+	if (m_sManualOutputConfiguration.bRebootRequest &&
+			(uwTick - m_sManualOutputConfiguration.nRebootRequestTimestamp > CONFIGURATION_RESTART_TIMEOUT_MS))
+	{
+		NVIC_SystemReset();
 	}
 }
 
@@ -208,7 +217,7 @@ ModbusException_T Configuration_SetManualOverrideEnabled(uint16_t nValue)
 	//	Is nValue equal to zero or one?
 	if (nValue <= 1)
 	{
-		m_sManualOutputConfiguration.bEnabled = (bool) nValue;
+		m_sManualOutputConfiguration.bOverrideEnabled = (bool) nValue;
 		m_sManualOutputConfiguration.nTimeout = uwTick;
 		eReturn = MODBUS_EXCEPTION_OK;
 	}
@@ -217,7 +226,7 @@ ModbusException_T Configuration_SetManualOverrideEnabled(uint16_t nValue)
 }
 uint16_t Configuration_GetManualOverrideEnabled(void)
 {
-	return m_sManualOutputConfiguration.bEnabled;
+	return m_sManualOutputConfiguration.bOverrideEnabled;
 }
 
 ModbusException_T Configuration_SetGreenLED(uint16_t nValue)
@@ -307,35 +316,60 @@ uint16_t Configuration_GetBuildVersion(void)
 	return SOFTWARE_VERSION_BUILD;
 }
 
-//	Module Controller UID information
-//	There isn't a very clear definition for how this is generated yet
-//	So uh... it returns fun hex values for now!
+/*
+	Function:	Configuration_SetRestart()
+	Description:
+		Attempts to set the restart flag. If so, it also specifies a time to restart.
+		This delay is about one second after the restart was requested.
+*/
+ModbusException_T Configuration_SetRestart(uint16_t nRestart)
+{
+	//	Return value.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+
+	if (nRestart <= 1)
+	{
+		m_sManualOutputConfiguration.bRebootRequest = (bool) nRestart;
+		m_sManualOutputConfiguration.nRebootRequestTimestamp = uwTick;
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+
+	return eReturn;
+}
+uint16_t Configuration_GetRestart(void)
+{
+	return m_sManualOutputConfiguration.bRebootRequest;
+}
 
 /*
-	Function:	Configuration_GetControllerUID_1_2()
-				Configuration_GetControllerUID_3_4()
-				Configuration_GetControllerUID_5_6()
-				Configuration_GetControllerUID_7_8()
+	Function:	Configuration_SetRestart()
 	Description:
-		Returns the specified parameter.
-		UID 1_2: 12xxxxxx
-		UID 3_4: xx34xxxx
-		UID 5_6: xxxx56xx
-		UID 7_8: xxxxxx78
+		Attempts to set the restart flag. If so, it also specifies a time to restart.
+		This delay is about one second after the restart was requested.
 */
-uint16_t Configuration_GetControllerUID_1_2(void)
+ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset)
 {
-	return 0x0123;
+	//	Return value.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
+
+	if (nFactoryReset <= 1)
+	{
+		m_sManualOutputConfiguration.bFactoryResetRequest = (bool) nFactoryReset;
+		m_sManualOutputConfiguration.nFactoryResetTimestamp = uwTick;
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+
+	return eReturn;
 }
-uint16_t Configuration_GetControllerUID_3_4(void)
+uint16_t Configuration_GetFactoryReset(void)
 {
-	return 0x4567;
+	return m_sManualOutputConfiguration.bFactoryResetRequest;
 }
-uint16_t Configuration_GetControllerUID_5_6(void)
-{
-	return 0x89AB;
-}
-uint16_t Configuration_GetControllerUID_7_8(void)
-{
-	return 0xCDEF;
-}
+
+
+
+
+
+
+
+

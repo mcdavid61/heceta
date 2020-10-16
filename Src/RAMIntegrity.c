@@ -9,6 +9,7 @@
 #include <stddef.h>
 #include "RAMIntegrity.h"
 #include "cmsis_gcc.h"
+#include "Fault.h"
 
 typedef enum
 {
@@ -30,7 +31,7 @@ extern uint32_t _estack;
 
 //	Size of RAM
 #define RAM_SIZE_BYTES ((((uint32_t)&_estack) - ((uint32_t)&_sdata)))
-#define RAM_PAGE_SIZE_BYTES (1024)
+#define RAM_PAGE_SIZE_BYTES (32)
 #define RAM_PAGE_SIZE_WORDS (RAM_PAGE_SIZE_BYTES/4)
 #define RAM_PAGE_COUNT (RAM_SIZE_BYTES/RAM_PAGE_SIZE_BYTES)
 
@@ -133,7 +134,7 @@ bool RAMIntegrity_Run(uint32_t * pStart, uint32_t * pEnd)
 	Description:
 		Primary processing function for the RAMIntegrity module.
 */
-bool RAMIntegrity_Process(void)
+void RAMIntegrity_Process(void)
 {
 	//	I've decided to intentionally use these pointers as uint8_t *,
 	//	so that pointer arithmetic doesn't attempt to outsmart me.
@@ -148,10 +149,7 @@ bool RAMIntegrity_Process(void)
 			pStart = (uint8_t *) &_sdata;
 			pEnd = (uint8_t *) &_estack;
 			bSuccess = RAMIntegrity_Run( (uint32_t *) pStart, (uint32_t *) pEnd);
-			if (bSuccess)
-			{
-				m_eRAMIntegrityState = RAMINTEGRITY_IDLE;
-			}
+			m_eRAMIntegrityState = RAMINTEGRITY_IDLE;
 			break;
 		case RAMINTEGRITY_IDLE:
 			//	In the IDLE state, whenever we're called, we'll check one page of
@@ -166,7 +164,22 @@ bool RAMIntegrity_Process(void)
 			break;
 	}
 
-	return bSuccess;
+	if (!bSuccess)
+	{
+		Fault_Activate(FAULT_RAM_INTEGRITY);
+	}
+}
+
+/*
+	Function:	RAMIntegrity_StartupTasksComplete()
+	Description:
+		Returns whether or not startpu tasks as required by the RAMIntegrity
+		module have been completed.
+*/
+bool RAMIntegrity_StartupTasksComplete(void)
+{
+	//	As long as we're not in the STARTUP state, we've completed our tasks.
+	return (m_eRAMIntegrityState != RAMINTEGRITY_STARTUP);
 }
 
 

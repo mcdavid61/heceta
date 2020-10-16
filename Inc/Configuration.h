@@ -32,6 +32,8 @@
 #define CONFIGURATION_PARAMETER_UNLOCK_CODE (1234)
 #define CONFIGURATION_PARAMETER_UNLOCK_TIMEOUT_MS (1 * 60000)
 #define CONFIGURATION_MANUAL_OUTPUT_TIMEOUT_MS (1 * 60000)
+#define CONFIGURATION_RESTART_TIMEOUT_MS (1 * 1000)
+#define CONFIGURATION_FACTORY_RESTART_TIMEOUT_MS (1 * 1000)
 /*
 	Structure:	ModbusConfiguration_T
 	Description:
@@ -61,12 +63,21 @@ typedef struct
 	Description:
 		Configures the manual outputs (LEDs, etc.) for manual
 		overrides. This is typically for debugging purposes.
+
+		This structure is also responsible for managing system reboots
+		and factory resets.
 */
 typedef struct
 {
-	//	Whether or not these status overrides are enabled.
+	//	Timeouts for various things
+	uint32_t nRebootRequestTimestamp;
+	uint32_t nFactoryResetTimestamp;
 	uint32_t nTimeout;
-	bool bEnabled;
+
+	//	Whether or not these status overrides are enabled.
+	bool bRebootRequest;
+	bool bFactoryResetRequest;
+	bool bOverrideEnabled;
 
 	//	The override values.
 	bool bGreenLED;
@@ -113,5 +124,10 @@ uint16_t Configuration_GetControllerUID_7_8(void);
 bool Configuration_MB_VendorName(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
 bool Configuration_MB_ProductCode(uint8_t * pBuffer, uint8_t nBufferLen, uint16_t * nBufferUsed);
 bool Configuration_MB_MajorMinorRevision(uint8_t * pBuffer, uint8_t nBufferLen,	uint16_t * nBufferUsed);
+
+ModbusException_T Configuration_SetRestart(uint16_t nRestart);
+uint16_t Configuration_GetRestart(void);
+ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset);
+uint16_t Configuration_GetFactoryReset(void);
 
 #endif /* CONFIGURATION_H_ */

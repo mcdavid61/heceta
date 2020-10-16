@@ -455,7 +455,6 @@ void SPIFlash_Callback(SPIStep_T * aSteps, int nSteps, int * nStepIndex)
 {
 	//	Callback function is shared amongst the three types of callbacks
 	//	that could be possibly triggered.
-	bool bHandled = false;
 
 	//	No longer an operation/step in progress.
 	m_bSPIOperationInProgress = false;

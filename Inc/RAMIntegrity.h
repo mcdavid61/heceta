@@ -10,7 +10,7 @@
 
 #define VOLATILE_DEREF(type, variable) (*((volatile type *) variable))
 
-bool RAMIntegrity_Process(void);
-
+void RAMIntegrity_Process(void);
+bool RAMIntegrity_StartupTasksComplete(void);
 
 #endif /* RAMINTEGRITY_H_ */

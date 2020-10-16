@@ -36,6 +36,8 @@
 	HOLDING_REGISTER(2801,	"Green LED State",					Configuration_GetGreenLED,						Configuration_SetGreenLED) \
 	HOLDING_REGISTER(2802,	"Red LED State",					Configuration_GetRedLED,						Configuration_SetRedLED) \
 	HOLDING_REGISTER(2803,	"Amber LED State",					Configuration_GetAmberLED,						Configuration_SetAmberLED) \
+	HOLDING_REGISTER(4100,	"Restart",							Configuration_GetRestart,						Configuration_SetRestart) \
+	HOLDING_REGISTER(4101,	"Factory Reset",					Configuration_GetFactoryReset,					Configuration_SetFactoryReset) \
 
 	//	To be continued.
 

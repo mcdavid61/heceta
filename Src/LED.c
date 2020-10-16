@@ -32,6 +32,9 @@
 //	output handler and keeps it within this module.
 static uint32_t m_nCommunicationTimestamp = (uint32_t) (0-LED_COMM_TIME);
 
+//	Boolean, indicates startup tasks complete
+static bool m_bStartupTasksComplete;
+
 
 /*
 	Function: LED_CommunicationTimestampUpdate()
@@ -155,7 +158,7 @@ typedef enum
 
 static LED_Startup_Test_State_T m_eStartupTestState = LED_STARTUP_TEST_INIT;
 
-bool LED_Startup_Test(void)
+void LED_Startup_Process(void)
 {
 	static uint32_t nTimer = 0;
 
@@ -169,6 +172,7 @@ bool LED_Startup_Test(void)
 			nTimer = uwTick;
 			m_eStartupTestState = LED_STARTUP_TEST_GREEN;
 			break;
+		case LED_STARTUP_TEST_COMPLETE:
 		case LED_STARTUP_TEST_GREEN:
 			bGreen = GPIO_PIN_SET;
 			if ((uwTick - nTimer) > LED_STARTUP_TEST_GAPTIME)
@@ -191,6 +195,7 @@ bool LED_Startup_Test(void)
 			{
 				nTimer = uwTick;
 				m_eStartupTestState = LED_STARTUP_TEST_COMPLETE;
+				m_bStartupTasksComplete = true;
 			}
 			break;
 		default:
@@ -200,9 +205,11 @@ bool LED_Startup_Test(void)
 	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 	bGreen);
 	HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, 	bAmber);
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 		bRed);
+}
 
-
-	return !(m_eStartupTestState == LED_STARTUP_TEST_COMPLETE);
+bool LED_StartupTasksComplete()
+{
+	return m_bStartupTasksComplete;
 }
 
 /*************************** END OF FILE **************************************/
