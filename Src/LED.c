@@ -32,6 +32,9 @@
 //	output handler and keeps it within this module.
 static uint32_t m_nCommunicationTimestamp = (uint32_t) (0-LED_COMM_TIME);
 
+//	Boolean, indicates startup tasks complete
+static bool m_bStartupTasksComplete;
+
 
 /*
 	Function: LED_CommunicationTimestampUpdate()
@@ -108,34 +111,8 @@ void LED_Process(void)
 
 		}
 
-		//	Configure the red LED, based on how long it has been since we've heard
-		//	from the MZ module.
-		if (uwTick - m_nCommunicationTimestamp > LED_COMM_MZ_TIMEOUT)
-		{
-			//	We've lost communication with the MZ. Go ahead and activate the LED.
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-
-			//	Additionally, update the m_nCommunicationTimestamp to reflect this "past state"
-			//	Set the communication clock to the past-- this helps avoid overflow if for whatever
-			//	reason we lose communication for a long period of time.
-			m_nCommunicationTimestamp = (uwTick - LED_COMM_MZ_TIMEOUT - 1);
-		}
-		else
-		{
-			//	Communication has been restored. Go ahead and clear this.
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-		}
-
-		/*
-		if (Command_Has_Comm_Timed_Out())
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_SET);
-		}
-		else
-		{
-			HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, GPIO_PIN_RESET);
-		}
-		*/
+		//	Configure the red LED, based on whether or not the FAULT_MODBUS bit is set.
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, Fault_Get(FAULT_MODBUS));
 	}
 	#endif
 
@@ -155,7 +132,7 @@ typedef enum
 
 static LED_Startup_Test_State_T m_eStartupTestState = LED_STARTUP_TEST_INIT;
 
-bool LED_Startup_Test(void)
+void LED_Startup_Process(void)
 {
 	static uint32_t nTimer = 0;
 
@@ -169,6 +146,7 @@ bool LED_Startup_Test(void)
 			nTimer = uwTick;
 			m_eStartupTestState = LED_STARTUP_TEST_GREEN;
 			break;
+		case LED_STARTUP_TEST_COMPLETE:
 		case LED_STARTUP_TEST_GREEN:
 			bGreen = GPIO_PIN_SET;
 			if ((uwTick - nTimer) > LED_STARTUP_TEST_GAPTIME)
@@ -191,6 +169,7 @@ bool LED_Startup_Test(void)
 			{
 				nTimer = uwTick;
 				m_eStartupTestState = LED_STARTUP_TEST_COMPLETE;
+				m_bStartupTasksComplete = true;
 			}
 			break;
 		default:
@@ -200,9 +179,11 @@ bool LED_Startup_Test(void)
 	HAL_GPIO_WritePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin, 	bGreen);
 	HAL_GPIO_WritePin(LED_AMBER_GPIO_Port, LED_AMBER_Pin, 	bAmber);
 	HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, 		bRed);
+}
 
-
-	return !(m_eStartupTestState == LED_STARTUP_TEST_COMPLETE);
+bool LED_StartupTasksComplete(void)
+{
+	return m_bStartupTasksComplete;
 }
 
 /*************************** END OF FILE **************************************/

@@ -38,14 +38,14 @@ static EEPROM_State_T m_eEEPROMState = EEPROM_STATE_STARTUP_READ;
 		for example, when data changes and needs to be updated
 		in flash.
 */
-void EEPROM_Process()
+void EEPROM_Process(void)
 {
 	switch(m_eEEPROMState)
 	{
 		case EEPROM_STATE_STARTUP_READ:
 			if (!SPIFlash_Read((uint8_t *) &m_sEEPROMConfiguration, 0, 0, sizeof(m_sEEPROMConfiguration)))
 			{
-				//	TODO:	Fatal error.
+				//	TODO:	SPI Fatal error.
 			}
 			m_eEEPROMState = EEPROM_STATE_STARTUP_VERIFY;
 			break;
@@ -64,7 +64,7 @@ void EEPROM_Process()
 					memset(&m_sEEPROMConfiguration, 0, sizeof(m_sEEPROMConfiguration));
 					m_bEEPROMConfigurationDirty = true;
 				}
-				m_eEEPROMState = EEPROM_STATE_IDLE;
+				m_eEEPROMState = m_bEEPROMConfigurationDirty ? EEPROM_STATE_WRITE : EEPROM_STATE_IDLE;
 			}
 			break;
 		case EEPROM_STATE_IDLE:
@@ -79,7 +79,7 @@ void EEPROM_Process()
 				m_sEEPROMConfiguration.nCRC = CRC16((uint8_t *) &m_sEEPROMConfiguration, sizeof(m_sEEPROMConfiguration) - sizeof(uint16_t));
 				if (!SPIFlash_Write((uint8_t *) &m_sEEPROMConfiguration, 0, 0, sizeof(m_sEEPROMConfiguration)))
 				{
-					//	TODO:	Fatal error.
+					//	TODO:	SPI Fatal error.
 				}
 				m_eEEPROMState = EEPROM_STATE_READ;
 			}
@@ -89,7 +89,7 @@ void EEPROM_Process()
 			{
 				if (!SPIFlash_Read((uint8_t *) &m_sEEPROMConfigurationVerify, 0, 0, sizeof(m_sEEPROMConfiguration)))
 				{
-					//	TODO:	Fatal error.
+					//	TODO:	SPI Fatal error.
 				}
 				m_eEEPROMState = EEPROM_STATE_VERIFY;
 			}

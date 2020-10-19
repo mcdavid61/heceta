@@ -110,7 +110,6 @@ void ModbusSlave_Init(void)
 
 	//	Based on our baud rate, which is a variable, determine how fast a
 	//	character time is.
-	//	TODO:	This will eventually be a dynamic value, but for now, it is #define'd
 	uint32_t nBaudRate = Configuration_GetBaudRate();
 
 	//	Nanoseconds per char
@@ -157,7 +156,6 @@ bool ModbusByte_IncomingMsgTimeoutFlag()
 {
 	TIM_HandleTypeDef * phtim = Main_Get_Modbus_Slave_Timer_Handle();
 
-	//	TODO:	Code to read from timer.
 	bool bIncomingMsgTimeout = (phtim->Instance->SR & TIM_SR_UIF) != 0;
 	return bIncomingMsgTimeout;
 }
@@ -172,7 +170,6 @@ bool ModbusByte_ContiguousDataTimeoutFlag()
 {
 	TIM_HandleTypeDef * phtim = Main_Get_Modbus_Slave_Timer_Handle();
 
-	//	TODO:	Code to read from timer.
 	bool bContiguousDataTimeout = (phtim->Instance->SR & TIM_SR_CC1IF) != 0;
 	return bContiguousDataTimeout;
 }
@@ -323,6 +320,9 @@ HAL_StatusTypeDef ModbusSlave_UART_Receive_IT(UART_HandleTypeDef *huart)
 */
 bool ModbusSlave_PrepareForInput()
 {
+	//	Return value
+	bool bReturnValue = false;
+
 	//	Grab the USART1 handle.
 	UART_HandleTypeDef * pUSART = Main_Get_Modbus_UART_Handle();
 
@@ -338,21 +338,19 @@ bool ModbusSlave_PrepareForInput()
 		case HAL_OK:
 			//	We've set up a request for an incoming character (just one)
 			//	This is an OK state.
-			return true;
+			bReturnValue = true;
 			break;
 		case HAL_ERROR:
 			//	An error occurred.
-			//	TODO:	Determine the best way to handle this.
 			break;
 		case HAL_BUSY:
 			//	The USART is busy.
-			//	TODO:	Determine the best way to handle this.
 			break;
 		default:
 			break;
 	}
 
-	return false;
+	return bReturnValue;
 }
 
 
@@ -977,8 +975,8 @@ ModbusException_T ModbusFunction_ReadDeviceIdentification(	uint8_t * pMbReqPDU, 
 	pMbRspPDU[0] = 0x2B;			//	Function Code
 	pMbRspPDU[1] = 0x0E;			//	MEI Type
 	pMbRspPDU[2] = pMbReqPDU[2];	//	Read Dev ID code
-	pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	(TODO: echos for now)
-	pMbRspPDU[4] = 0;				//	More follows flag (TODO: implement)
+	pMbRspPDU[3] = pMbRspPDU[2];	//	Conformity level	TODO: 	Echos back the conformity level for now.
+	pMbRspPDU[4] = 0;				//	More follows flag   TODO:	For our implementation, we don't need to implement.
 	pMbRspPDU[5] = nObjectID;		//	Next Object ID
 	pMbRspPDU[6] = 0;				//	Number of objects
 	(*pMbRspPDUUsed) += 7;
@@ -1267,7 +1265,8 @@ void ModbusSlave_CommunicationFaultProcess()
 		//	To prevent rollover fault.
 		m_nModbusCommunicationTimestamp = uwTick - MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS - 1;
 
-		bFaulted = true;
+		//	If the module is enabled, we are faulted. Otherwise, just push the time back.
+		bFaulted = true && !Configuration_GetModuleDisable();
 	}
 
 	Fault_Set(FAULT_MODBUS, bFaulted);
@@ -1338,9 +1337,8 @@ void ModbusSlave_Process(void)
 	//	timeout, trigger the fault.
 	ModbusSlave_CommunicationFaultProcess();
 
-	//	TODO:	We need to implement some sort of check of the USART
-	//			that verifies that it is running and not in an error state.
-	//			What's the best way to do this?
+	//	Verify that the USART is truly ready. If it isn't, this will do the
+	//	magic of setting the m_bReadyToAcceptData variable to false.
 	ModbusSlave_VerifyUSARTReady();
 
 	//	If incoming data hasn't been initialized yet, go ahead and do that.

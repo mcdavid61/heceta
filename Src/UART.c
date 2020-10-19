@@ -17,20 +17,7 @@
 */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	//	Command UART
-	if (Main_Get_Command_UART_Handle() == huart)
-	{
-		//	Accept the incoming data, if possible.
-		//	Command_UART_RxCpltCallback();
-	}
-
-	//	RS485 UART
-	if (Main_Get_Modbus_UART_Handle() == huart)
-	{
-		//	Modbus incoming data.
-		//	TODO:	Figure out if this is ever used-- it shouldn't be.
-		//	ModbusSlave_UART_RxCpltCallback();
-	}
+	//	Not used.
 }
 
 /*

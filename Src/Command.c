@@ -41,7 +41,8 @@ static uint32_t m_nSerialInputBufferPos = 0;
 static bool m_bReadyToAcceptData = false;
 
 //	Output buffer
-static char m_aSerialOutputBuffer[SERIAL_OUTPUT_BUFFER_SIZE] = {0};
+//	For now, this is commented out since we aren't using it specifically for anything.
+//	static char m_aSerialOutputBuffer[SERIAL_OUTPUT_BUFFER_SIZE] = {0};
 
 
 extern uint16_t ADC_24V_Mon;
@@ -72,6 +73,9 @@ bool m_bCharDataArrived = false;
 */
 bool Command_PrepareForInput()
 {
+	//	Return value
+	bool bReturnValue = false;
+
 	//	Grab the USART3 handle.
 	UART_HandleTypeDef * pUSART = Main_Get_Command_UART_Handle();
 
@@ -87,21 +91,19 @@ bool Command_PrepareForInput()
 		case HAL_OK:
 			//	We've set up a request for an incoming character (just one)
 			//	This is an OK state.
-			return true;
+			bReturnValue = true;
 			break;
 		case HAL_ERROR:
 			//	An error occurred.
-			//	TODO:	Determine the best way to handle this.
 			break;
 		case HAL_BUSY:
 			//	The USART is busy.
-			//	TODO:	Determine the best way to handle this.
 			break;
 		default:
 			break;
 	}
 
-	return false;
+	return bReturnValue;
 }
 
 /*
@@ -273,67 +275,6 @@ void Command_Process(void)
 			}
 	}
 }
-
-
-/*	HAL UART callback functions	*/
-
-/*
-	Function:	Command_UART_RxCpltCallback()
-	Description:
-		Callback function of which should be called whenever
-		data is received on the UART.
-
-		This function is called from HAL_UART_RxCpltCallback
-		whenever the callback is from USART3.
-*/
-void Command_UART_RxCpltCallback(void)
-{
-	//	TODO:	This needs to be modified to be a serious error.
-	//			This function never actually is "complete", since we're
-	//			constantly reading into a FIFO and ready to process
-	//			serial input.
-
-
-
-	//	Our input buffer, m_nIncomingByte, now contains
-	//	the next byte sent across the USART.
-
-	//	Go ahead and attempt to insert it into the FIFO.
-	//bool bInserted = FIFO_Enqueue(&m_sCommandBufferFIFO, &m_nIncomingByte);
-
-	//	TODO:	There should be some handling here... for now,
-	//			it doesn't actually do anything.
-
-	/*
-	 * This was the previous handling that I was using for debugging.
-		I've left it as a comment for now, but it's safe to remove.
-
-	if (bInserted)
-	{
-		//	We were able to insert this value into the FIFO.
-		//	Go ahead and spit it back out on the serial console.
-		printf("%c", m_nIncomingByte);
-	}
-	else
-	{
-		//	We couldn't insert this for whatever reason-- perhaps a full FIFO.
-		//	Don't do anything at the moment-- this is lost data.
-	}
-
-	*/
-
-	//	Initialize the next request for incoming data.
-	//volatile bool bReadyForData = Command_PrepareForInput();
-	//if (!bReadyForData)
-	//{
-	//	printf("not ready for data uh-oh");
-	//}
-	//m_bReadyToAcceptData = bReadyForData;
-}
-
-
-
-
 
 /*
 	Function:	Command_UART_ErrorCallback();
