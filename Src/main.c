@@ -158,6 +158,12 @@ int main(void)
 
   uint32_t UID = UUID_Get_ID();
 
+  FLASH_OBProgramInitTypeDef pOBInit;
+  HAL_FLASHEx_OBGetConfig(&pOBInit);
+  if (pOBInit.USERConfig & 0x08000000 )
+  {
+	  sequenceIndex = 999;
+  }
   //	Pre-execution self-test processing loop.
   //	Responsible for running all of the self tests that occur before the system boots.
   bool bSelfTestsNotComplete = true;
