@@ -28,6 +28,7 @@
 #include "Configuration.h"
 #include "Relay.h"
 #include "ADC.h"
+#include "Fault.h"
 
 /*
 	Function:	ModbusDataModel_ReturnResetState()

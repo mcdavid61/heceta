@@ -28,6 +28,8 @@ typedef struct
 
 }	EEPROM_Configuration_T;
 
+void EEPROM_Process(void);
 uint16_t EEPROM_GetFaultRegisterMap(void);
+void EEPROM_SetFaultRegisterMap(uint16_t nFaultRegisterMap);
 
 #endif /* EEPROM_H_ */

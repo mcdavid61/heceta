@@ -27,7 +27,7 @@ void Relay_Process(void);
 uint16_t Relay_Get(void);
 void Relay_Run_Demo();
 void Relay_Set_CommRelay(_Bool state);
-
+uint16_t Relay_GetFaulted(void);
 
 
 #endif /* _RELAY_H_ */
