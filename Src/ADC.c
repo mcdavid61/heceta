@@ -78,13 +78,16 @@ void ADC_Process(void)
       /*       in the order of their rank in ADC sequencer.                   */
       ADC_Vref = (double)((uint32_t)*VREFINT_CALDATA * ADC_VREF_CAL_VOLT) /  aADCxConvertedValues[3];
 
-      ADC_24V_Mon         = (double)aADCxConvertedValues[0] * ADC_Vref / ADC_MAX_COUNTS * 10590 / 590;
-      ADC_3V3_Mon         = (double)aADCxConvertedValues[1] * ADC_Vref / ADC_MAX_COUNTS * 25000 / 15000;
-      temporary           = (((double)aADCxConvertedValues[2]) * 1.1) - (uint32_t)*TS30;
-      temporary          *= (double)(110 - 30);
-      temporary          /= (double)(int32_t)((uint32_t)*TS110 - (uint32_t)*TS30);
-      ADC_Temperature     = temporary + 30;
-      ADC_VrefInt         = (double)aADCxConvertedValues[3] * ADC_Vref / ADC_MAX_COUNTS;
+      ADC_24V_Mon = (double)aADCxConvertedValues[0] * ADC_Vref / ADC_MAX_COUNTS * 10590 / 590;
+      ADC_3V3_Mon = (double)aADCxConvertedValues[1] * ADC_Vref / ADC_MAX_COUNTS * 25000 / 15000;
+
+      temporary       = ((double)aADCxConvertedValues[2] * (uint32_t)*VREFINT_CALDATA / aADCxConvertedValues[3]) - (uint32_t)*ADC_TEMP1_COUNTS;
+      temporary      *= (double)(ADC_TEMP2 - ADC_TEMP1);
+      temporary      /= (double)(int32_t)((uint32_t)*ADC_TEMP2_COUNTS - (uint32_t)*ADC_TEMP1_COUNTS);
+      ADC_Temperature = temporary + ADC_TEMP1;
+
+      ADC_VrefInt = (double)aADCxConvertedValues[3] * ADC_Vref / ADC_MAX_COUNTS;
+
       ubSequenceCompleted = RESET;
 
       // Reflect our internal counter for when these values are ready.
