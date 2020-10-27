@@ -1330,7 +1330,6 @@ void ModbusSlave_Process(void)
 {
 	//	Storage for whether or not a Modbus command is ready.
 	bool bValidModbusCommand = false;
-	bool bSent = false;
 
 	//	Process our communication status
 	//	If we haven't received any valid Modbus communication without our
@@ -1391,7 +1390,7 @@ void ModbusSlave_Process(void)
 											  &m_nModbusSlaveOutputBufferPos);
 
 					//	Attempt to send.
-					bSent = ModbusSlave_PrepareForOutput(m_aModbusSlaveOutputBuffer, m_nModbusSlaveOutputBufferPos);
+					ModbusSlave_PrepareForOutput(m_aModbusSlaveOutputBuffer, m_nModbusSlaveOutputBufferPos);
 					m_eModbusSlaveState = MODBUS_SLAVE_SEND_WAIT;
 				}
 				else
