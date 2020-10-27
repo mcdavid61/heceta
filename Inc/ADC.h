@@ -13,10 +13,10 @@
 #define ADC_MAX_COUNTS                    4095
 #define ADC_VREF_VOLT                     1200
 
-#define ADC_3V3_TOLERANCE_LOW 	3135
-#define ADC_3V3_TOLERANCE_HIGH 	3465
-#define ADC_VIN_TOLERANCE_LOW 	21600
-#define ADC_VIN_TOLERANCE_HIGH 	26400
+#define ADC_3V3_TOLERANCE_LOW             3135
+#define ADC_3V3_TOLERANCE_HIGH            3465
+#define ADC_VIN_TOLERANCE_LOW             21600
+#define ADC_VIN_TOLERANCE_HIGH            26400
 
 // Temperature tolerances are defined in celsius (C).
 #define ADC_TEMPERATURE_TOLERANCE_LOW     (-25)
@@ -25,8 +25,11 @@
 // Number of iterations required before we report back ADC results
 #define ADC_ITERATIONS                    (1)
 
-#define TS30                              ((uint16_t*)((uint32_t)0x1FFF75A8))
-#define TS110                             ((uint16_t*)((uint32_t)0x1FFF75CA))
+#define ADC_TEMP1                         (30.0)
+#define ADC_TEMP2                         (110.0)
+
+#define ADC_TEMP1_COUNTS                  ((uint16_t*)((uint32_t)0x1FFF75A8))
+#define ADC_TEMP2_COUNTS                  ((uint16_t*)((uint32_t)0x1FFF75CA))
 
 #define VREFINT_CALDATA                   ((uint16_t*)((uint32_t)0x1FFF75AA))
 
