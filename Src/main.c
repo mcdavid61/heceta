@@ -35,6 +35,8 @@
 #include "EEPROM.h"
 #include "SPIFlash.h"
 #include "RAMIntegrity.h"
+#include "OptionByte.h"
+
 
 /* USER CODE END Includes */
 
@@ -161,26 +163,7 @@ int main(void)
 
   uint32_t    UID = UUID_Get_ID();
 
-  FLASH_OBProgramInitTypeDef    pOBInit;
-
-  HAL_FLASHEx_OBGetConfig(&pOBInit);
-
-  if (pOBInit.USERConfig & FLASH_OPTR_nSWBOOT0)
-  {
-    pOBInit.USERConfig &= ~FLASH_OPTR_nSWBOOT0;
-    pOBInit.OptionType  = OPTIONBYTE_USER;
-
-    if (HAL_FLASH_Unlock() == HAL_OK)
-    {
-      if (HAL_FLASH_OB_Unlock() == HAL_OK)
-      {
-        HAL_FLASHEx_OBProgram(&pOBInit);
-      }
-      HAL_FLASH_OB_Launch();
-      HAL_FLASH_OB_Lock();
-      HAL_FLASH_Lock();
-    }
-  }
+  OptionByte_Check();
 
   // Flow of execution
   // -  Pre-main loop self-tests
