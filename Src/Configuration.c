@@ -187,6 +187,35 @@ ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap)
 }
 
 /*
+	Function:	Configuration_GetFailsafeRelayEnable()
+				Configuration_SetFailsafeRelayEnable()
+	Description:
+		Returns the relay map.
+*/
+uint16_t Configuration_GetFailsafeRelayEnable()
+{
+	return EEPROM_GetFailsafeRelayEnable();
+}
+ModbusException_T Configuration_SetFailsafeRelayEnable(uint16_t nFailsafeRelayEnable)
+{
+	//	By default, we only allow setting this parameter if
+	//	the correct parameter unlock lock has been specified.
+	ModbusException_T eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
+
+	if (m_sModbusConfiguration.nParameterUnlockCode == CONFIGURATION_PARAMETER_UNLOCK_CODE)
+	{
+		//	Reset the timer.
+		m_sModbusConfiguration.nParameterUnlockTimeout = uwTick;
+
+		EEPROM_SetFailsafeRelayEnable(nFailsafeRelayEnable);
+		eReturn = MODBUS_EXCEPTION_OK;
+	}
+
+	return eReturn;
+}
+
+
+/*
 	Function:	Configuration_GetParameterUnlockCode()
 				Configuration_SetParameterUnlockCode()
 	Description:

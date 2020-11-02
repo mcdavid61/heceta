@@ -99,6 +99,8 @@ uint16_t Configuration_GetMessageLength(void);
 ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap);
 uint16_t Configuration_GetFaultRelayMap();
 
+ModbusException_T Configuration_SetFailsafeRelayEnable(uint16_t nFailsafeRelayEnable);
+uint16_t Configuration_GetFailsafeRelayEnable();
 
 ModbusException_T Configuration_SetParameterUnlockCode(uint16_t nParameterUnlockCode);
 uint16_t Configuration_GetParameterUnlockCode(void);
