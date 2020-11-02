@@ -113,6 +113,8 @@ static bool Relay_Set(uint16_t nPattern)
 */
 void Relay_Process(void)
 {
+	DRV8860_DataRegister_T m_aDR_temp[DRV8860_CNT] = {0};
+
 	//	Component #0:	Heceta Module Disabled?
 	//		If the Heceta Module is disabled, clear the relay request map.
 	if (Configuration_GetModuleDisable())
@@ -175,13 +177,17 @@ void Relay_Process(void)
 			}
 			break;
 		case RELAY_DR_WRITE:
-			//	As defined in the nCR, write out
-			//	the control register configuration.
-			DRV8860_DataRegisterWrite(m_aDR, DRV8860_CNT);
+			//	As defined in the nDR, write out
+			//	the data register configuration.
+			m_aDR_temp[DRV8860_A] = ~m_aDR[DRV8860_A];
+			m_aDR_temp[DRV8860_B] = ~m_aDR[DRV8860_B];
+			DRV8860_DataRegisterWrite(m_aDR_temp, DRV8860_CNT);
 			m_eRelayState = RELAY_DR_VERIFY;
 			break;
 		case RELAY_DR_VERIFY:
-			DRV8860_DataRegisterRead(m_aDRVerify, DRV8860_CNT);
+			DRV8860_DataRegisterRead(m_aDR_temp, DRV8860_CNT);
+			m_aDRVerify[DRV8860_A] = ~m_aDR_temp[DRV8860_A];
+			m_aDRVerify[DRV8860_B] = ~m_aDR_temp[DRV8860_B];
 			if (!memcmp(m_aDRVerify, m_aDR, sizeof(DRV8860_DataRegister_T) * DRV8860_CNT))
 			{
 				//	Clear.
