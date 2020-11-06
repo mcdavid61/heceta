@@ -34,9 +34,8 @@ extern __IO uint16_t    aADCxConvertedValues[ADC_NUM_CHANNELS];
 
 void ADC_Process(void)
 {
-  ADC_HandleTypeDef*   adc = Main_Get_ADC_Handle();
-
-  static uint32_t    adcTick = 0;
+  ADC_HandleTypeDef*   adc     = Main_Get_ADC_Handle();
+  static uint32_t      adcTick = 0;
 
   if (uwTick > adcTick)
   {
@@ -81,10 +80,19 @@ void ADC_Process(void)
       ADC_24V_Mon = (double)aADCxConvertedValues[0] * ADC_Vref / ADC_MAX_COUNTS * 10590 / 590;
       ADC_3V3_Mon = (double)aADCxConvertedValues[1] * ADC_Vref / ADC_MAX_COUNTS * 25000 / 15000;
 
-      temporary       = ((double)aADCxConvertedValues[2] * (uint32_t)*VREFINT_CALDATA / aADCxConvertedValues[3]) - (uint32_t)*ADC_TEMP1_COUNTS;
-      temporary      *= (double)(ADC_TEMP2 - ADC_TEMP1);
-      temporary      /= (double)(int32_t)((uint32_t)*ADC_TEMP2_COUNTS - (uint32_t)*ADC_TEMP1_COUNTS);
-      ADC_Temperature = temporary + ADC_TEMP1;
+      temporary  = ((double)aADCxConvertedValues[2] * (uint32_t)*VREFINT_CALDATA / aADCxConvertedValues[3]) - (uint32_t)*ADC_TEMP1_COUNTS;
+      temporary *= (double)(ADC_TEMP2 - ADC_TEMP1);
+      temporary /= (double)(int32_t)((uint32_t)*ADC_TEMP2_COUNTS - (uint32_t)*ADC_TEMP1_COUNTS);
+
+      // apply some averaging to the temperature
+      if (ADC_Temperature != 0)
+      {
+        ADC_Temperature = (int16_t) ((ADC_Temperature * 0.75) + (temporary + ADC_TEMP1) * 0.25);
+      }
+      else
+      {
+        ADC_Temperature = (temporary + ADC_TEMP1);
+      }
 
       ADC_VrefInt = (double)aADCxConvertedValues[3] * ADC_Vref / ADC_MAX_COUNTS;
 
@@ -98,12 +106,53 @@ void ADC_Process(void)
   // Fault handling
   if (!m_nADCValuesOK)
   {
-    bool    b24VFault    = (ADC_24V_Mon < ADC_VIN_TOLERANCE_LOW || ADC_24V_Mon > ADC_VIN_TOLERANCE_HIGH);
-    bool    b3V3Fault    = (ADC_3V3_Mon < ADC_3V3_TOLERANCE_LOW || ADC_3V3_Mon > ADC_3V3_TOLERANCE_HIGH);
+    if (FALSE == Fault_Get(FAULT_VOLTAGE_24V_OUT_OF_SPEC))
+    {
+      if ((ADC_24V_Mon < ADC_24V_TOLERANCE_LOW) || (ADC_24V_Mon > ADC_24V_TOLERANCE_HIGH))
+      {
+        Fault_Set(FAULT_VOLTAGE_24V_OUT_OF_SPEC, TRUE);
+      }
+    }
+    else
+    {
+      if ((ADC_24V_Mon < ADC_24V_HYSTERISIS_HIGH) && (ADC_24V_Mon > ADC_24V_HYSTERISIS_LOW))
+      {
+        Fault_Set(FAULT_VOLTAGE_24V_OUT_OF_SPEC, FALSE);
+      }
+    }
+
+    if (FALSE == Fault_Get(FAULT_VOLTAGE_3V3_OUT_OF_SPEC))
+    {
+      if ((ADC_3V3_Mon < ADC_3V3_TOLERANCE_LOW) || (ADC_3V3_Mon > ADC_3V3_TOLERANCE_HIGH))
+      {
+        Fault_Set(FAULT_VOLTAGE_3V3_OUT_OF_SPEC, TRUE);
+      }
+    }
+    else
+    {
+      if ((ADC_3V3_Mon < ADC_3V3_HYSTERISIS_HIGH) && (ADC_3V3_Mon > ADC_3V3_HYSTERISIS_LOW))
+      {
+        Fault_Set(FAULT_VOLTAGE_3V3_OUT_OF_SPEC, FALSE);
+      }
+    }
+
+    if (FALSE == Fault_Get(FAULT_TEMPERATURE))
+    {
+      if ((ADC_Temperature < ADC_TEMPERATURE_TOLERANCE_LOW) || (ADC_Temperature > ADC_TEMPERATURE_TOLERANCE_HIGH))
+      {
+        Fault_Set(FAULT_TEMPERATURE, TRUE);
+      }
+    }
+    else
+    {
+      if ((ADC_Temperature < ADC_TEMPERATURE_HYSTERISIS_HIGH) && (ADC_Temperature > ADC_TEMPERATURE_HYSTERISIS_LOW))
+      {
+        Fault_Set(FAULT_TEMPERATURE, FALSE);
+      }
+    }
     bool    bTemperature = ((int16_t) ADC_Temperature) < ADC_TEMPERATURE_TOLERANCE_LOW ||
                            ((int16_t) ADC_Temperature) > ADC_TEMPERATURE_TOLERANCE_HIGH;
-    Fault_Set(FAULT_VOLTAGE_VIN_OUT_OF_SPEC, b24VFault);
-    Fault_Set(FAULT_VOLTAGE_3_3V_OUT_OF_SPEC, b3V3Fault);
+
     Fault_Set(FAULT_TEMPERATURE, bTemperature);
   }
 }
