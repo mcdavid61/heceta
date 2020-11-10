@@ -129,5 +129,6 @@ ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset);
 uint16_t          Configuration_GetFactoryReset(void);
 ModbusException_T Configuration_SetModuleDisable(uint16_t nDisabled);
 uint16_t          Configuration_GetModuleDisable(void);
+uint16_t          Configuration_GetSwitches(void);
 
 #endif/* CONFIGURATION_H_ */

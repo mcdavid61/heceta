@@ -15,31 +15,32 @@
     pReadFunction  = read; \
     pWriteFunction = write; \
     break;
-	
+
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
-  HOLDING_REGISTER(1100,  "Module Disable",         Configuration_GetModuleDisable, 		Configuration_SetModuleDisable) \
-  HOLDING_REGISTER(1101,  "Relay States Requested", Relay_Get,  							Relay_Request) \
-  HOLDING_REGISTER(1102,  "Relay States Actual",    Relay_Get,      						NULL) \
-  HOLDING_REGISTER(1103,  "Fault Code",           	Fault_GetAll,   						NULL) \
-  HOLDING_REGISTER(1104,  "Relay Fault",            Relay_GetFaulted, 						NULL) \
-  HOLDING_REGISTER(1105,  "Fault Flag",             Fault_NotOK,    						NULL) \
-  HOLDING_REGISTER(1106,  "Supply Voltage",         ADC_Get_Supply_Voltage,   				NULL) \
-  HOLDING_REGISTER(1107,  "3.3V Reference Voltage", ADC_Get_3V3_Voltage,    				NULL) \
-  HOLDING_REGISTER(1108,  "Vref Internal",          ADC_Get_VrefInt_Voltage,  				NULL) \
-  HOLDING_REGISTER(1109,  "Temperature (C)",        ADC_Get_Temperature,    				NULL) \
+  HOLDING_REGISTER(1100,  "Module Disable",         Configuration_GetModuleDisable,         Configuration_SetModuleDisable) \
+  HOLDING_REGISTER(1101,  "Relay States Requested", Relay_Get,                              Relay_Request) \
+  HOLDING_REGISTER(1102,  "Relay States Actual",    Relay_Get,                              NULL) \
+  HOLDING_REGISTER(1103,  "Fault Code",             Fault_GetAll,                           NULL) \
+  HOLDING_REGISTER(1104,  "Relay Fault",            Relay_GetFaulted,                       NULL) \
+  HOLDING_REGISTER(1105,  "Fault Flag",             Fault_NotOK,                            NULL) \
+  HOLDING_REGISTER(1106,  "Supply Voltage",         ADC_Get_Supply_Voltage,                 NULL) \
+  HOLDING_REGISTER(1107,  "3.3V Reference Voltage", ADC_Get_3V3_Voltage,                    NULL) \
+  HOLDING_REGISTER(1108,  "Vref Internal",          ADC_Get_VrefInt_Voltage,                NULL) \
+  HOLDING_REGISTER(1109,  "Temperature (C)",        ADC_Get_Temperature,                    NULL) \
   HOLDING_REGISTER(2100,  "Parameter Unlock",       Configuration_GetParameterUnlockCode,   Configuration_SetParameterUnlockCode) \
   HOLDING_REGISTER(2101,  "RS-485 Node Address",    Configuration_GetModbusAddress,         NULL) \
-  HOLDING_REGISTER(2102,  "Baud Rate",            	Configuration_IsBaudRate19200,          NULL) \
-  HOLDING_REGISTER(2103,  "Stop Bits",            	Configuration_GetStopBits,            	NULL) \
-  HOLDING_REGISTER(2104,  "Parity",             	Configuration_GetParity,            	NULL) \
+  HOLDING_REGISTER(2102,  "Baud Rate",              Configuration_IsBaudRate19200,          NULL) \
+  HOLDING_REGISTER(2103,  "Stop Bits",              Configuration_GetStopBits,              NULL) \
+  HOLDING_REGISTER(2104,  "Parity",                 Configuration_GetParity,                NULL) \
   HOLDING_REGISTER(2105,  "Fault Relay Map",        Configuration_GetFaultRelayMap,         Configuration_SetFaultRelayMap) \
   HOLDING_REGISTER(2106,  "Failsafe Relay Enable",  Configuration_GetFailsafeRelayEnable,   Configuration_SetFailsafeRelayEnable) \
-  HOLDING_REGISTER(2800,  "Manual Override Enable", Configuration_GetManualOverrideEnabled,	Configuration_SetManualOverrideEnabled) \
-  HOLDING_REGISTER(2801,  "Green LED State",        Configuration_GetGreenLED,            	Configuration_SetGreenLED) \
-  HOLDING_REGISTER(2802,  "Red LED State",          Configuration_GetRedLED,            	Configuration_SetRedLED) \
-  HOLDING_REGISTER(2803,  "Amber LED State",        Configuration_GetAmberLED,            	Configuration_SetAmberLED) \
-  HOLDING_REGISTER(4100,  "Restart",              	Configuration_GetRestart,           	Configuration_SetRestart) \
-  HOLDING_REGISTER(4101,  "Factory Reset", 			Configuration_GetFactoryReset,          Configuration_SetFactoryReset) \
+  HOLDING_REGISTER(2800,  "Manual Override Enable", Configuration_GetManualOverrideEnabled, Configuration_SetManualOverrideEnabled) \
+  HOLDING_REGISTER(2801,  "Green LED State",        Configuration_GetGreenLED,              Configuration_SetGreenLED) \
+  HOLDING_REGISTER(2802,  "Red LED State",          Configuration_GetRedLED,                Configuration_SetRedLED) \
+  HOLDING_REGISTER(2803,  "Amber LED State",        Configuration_GetAmberLED,              Configuration_SetAmberLED) \
+  HOLDING_REGISTER(2804,  "Switches",               Configuration_GetSwitches,              NULL) \
+  HOLDING_REGISTER(4100,  "Restart",                Configuration_GetRestart,               Configuration_SetRestart) \
+  HOLDING_REGISTER(4101,  "Factory Reset",          Configuration_GetFactoryReset,          Configuration_SetFactoryReset) \
 
 // To be continued.
 

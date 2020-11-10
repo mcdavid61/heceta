@@ -336,6 +336,11 @@ uint16_t Configuration_GetAmberLED(void)
   return m_sManualOutputConfiguration.bAmberLED;
 }
 
+uint16_t Configuration_GetSwitches(void)
+{
+  return (~Switches_Read() & 0xFF); // invert switches so that 1 = ON, and mask for 8 positions
+}
+
 // Version information return is also handled by the configuration
 // Note that the version info is located in
 
