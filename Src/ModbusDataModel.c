@@ -290,7 +290,7 @@ bool ModbusDataModel_ReadObjectIDHelper_Str(uint8_t * pBuffer, int nBufferLen,	u
 	//	Determine how long the string is that we need to copy.
 	//	Whether or not the string is copied, as long as the nStr and nBufferUsed variables
 	//	are correctly passed, this string length will be returned regardless.
-	uint16_t nStrLen;
+	uint16_t nStrLen = 0;
 	if (pStr != NULL)
 	{
 		nStrLen = strlen((char *) pStr);
