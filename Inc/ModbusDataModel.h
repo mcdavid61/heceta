@@ -20,13 +20,12 @@
   HOLDING_REGISTER(1100,  "Module Disable",         Configuration_GetModuleDisable,         Configuration_SetModuleDisable) \
   HOLDING_REGISTER(1101,  "Relay States Requested", Relay_Get,                              Relay_Request) \
   HOLDING_REGISTER(1102,  "Relay States Actual",    Relay_Get,                              NULL) \
-  HOLDING_REGISTER(1103,  "Fault Code",             Fault_GetAll,                           NULL) \
-  HOLDING_REGISTER(1104,  "Relay Fault",            Relay_GetFaulted,                       NULL) \
-  HOLDING_REGISTER(1105,  "Fault Flag",             Fault_NotOK,                            NULL) \
+  HOLDING_REGISTER(1103,  "Relay Fault",            Relay_GetFaulted,                       NULL) \
+  HOLDING_REGISTER(1104,  "Fault Flag",             Fault_NotOK,                            NULL) \
+  HOLDING_REGISTER(1105,  "Fault Code",             Fault_GetAll,                           NULL) \
   HOLDING_REGISTER(1106,  "Supply Voltage",         ADC_Get_Supply_Voltage,                 NULL) \
   HOLDING_REGISTER(1107,  "3.3V Reference Voltage", ADC_Get_3V3_Voltage,                    NULL) \
-  HOLDING_REGISTER(1108,  "Vref Internal",          ADC_Get_VrefInt_Voltage,                NULL) \
-  HOLDING_REGISTER(1109,  "Temperature (C)",        ADC_Get_Temperature,                    NULL) \
+  HOLDING_REGISTER(1108,  "Temperature (C)",        ADC_Get_Temperature,                    NULL) \
   HOLDING_REGISTER(2100,  "Parameter Unlock",       Configuration_GetParameterUnlockCode,   Configuration_SetParameterUnlockCode) \
   HOLDING_REGISTER(2101,  "RS-485 Node Address",    Configuration_GetModbusAddress,         NULL) \
   HOLDING_REGISTER(2102,  "Baud Rate",              Configuration_IsBaudRate19200,          NULL) \
