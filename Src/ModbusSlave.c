@@ -626,40 +626,11 @@ ModbusException_T ModbusFunction_WriteRegisters(		uint8_t * pMbReqPDU, uint32_t 
 	//	Check #3:	Starting Address == OK
 	//						AND
 	//	Check #4:	Starting Address + Quantity of Registers == OK
-	//	Check to ensure that the registers requested are valid registers
-	//	that can be written to.
-	//	NOTE:	I have adjusted this function slightly-- not only does it
-	//			check the starting and ending register, it also checks every
-	//			single register in between.
 
 	uint32_t nStartAddress = (pMbReqPDU[1] << 8) | (pMbReqPDU[2]);
 	uint16_t nRelativeRegisterCounter = 0;
-	while ( nRelativeRegisterCounter < nNumberOfRegisters)
-	{
-		//	Current address
-		uint32_t nCurrentAddress = (nStartAddress + nRelativeRegisterCounter);
 
-		//	Attempt to write a "NULL" value.
-		//	This effectively does nothing,
-		ModbusException_T eException;
-
-		eException = pRegisterWrite(nCurrentAddress, NULL);
-		if (eException == MODBUS_EXCEPTION_OK)
-		{
-			nRelativeRegisterCounter++;
-		}
-		else
-		{
-			//	We can't write to this register.
-			//	Throw the exception that was raised by the pRegisterWrite function.
-			return eException;
-		}
-	}
-
-	//	Restart the relative register counter at 0
-	nRelativeRegisterCounter = 0;
-
-	//	Now--we're actually going to do the write.
+	//	do the write.
 	while ( nRelativeRegisterCounter < nNumberOfRegisters)
 	{
 		//	Current address
