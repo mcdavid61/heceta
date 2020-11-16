@@ -415,27 +415,31 @@ uint16_t Configuration_GetFactoryReset(void)
 }
 
 /*
-   Function:  Configuration_SetModuleDisable()
+   Function:  Configuration_SetModuleEnable()
    Description:
-    Sets the module disable flag. Has varying effects on the system, such as:
+    Sets/clears the module enable flag. Has varying effects on the system.
+    Clear:
     - Immediately disables all relays upon next program cycle.
     - Immediately disables the MZ communication timeout.
     - Clears the requested relay map entirely. Does not allow relays to be requested.
+    Set:
+    - Enables control of all relays.
+    - Enables MZ communication timeout.
  */
-ModbusException_T Configuration_SetModuleDisable(uint16_t nDisabled)
+ModbusException_T Configuration_SetModuleEnable(uint16_t nEnabled)
 {
   // Return value.
   ModbusException_T    eReturn = MODBUS_EXCEPTION_ILLEGAL_DATA_VALUE;
 
-  if (nDisabled <= 1)
+  if (nEnabled <= 1)
   {
-    m_sManualOutputConfiguration.bModuleDisable = (bool) nDisabled;
-    eReturn                                     = MODBUS_EXCEPTION_OK;
+    m_sManualOutputConfiguration.bModuleEnable = (bool) nEnabled;
+    eReturn                                    = MODBUS_EXCEPTION_OK;
   }
 
   return eReturn;
 }
-uint16_t Configuration_GetModuleDisable(void)
+uint16_t Configuration_GetModuleEnable(void)
 {
-  return m_sManualOutputConfiguration.bModuleDisable;
+  return m_sManualOutputConfiguration.bModuleEnable;
 }

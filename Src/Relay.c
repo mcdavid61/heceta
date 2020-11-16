@@ -68,7 +68,7 @@ static uint8_t    m_nFaultCounter = 0;
  */
 ModbusException_T Relay_Request(uint16_t nPattern)
 {
-  if (!Configuration_GetModuleDisable())
+  if (Configuration_GetModuleEnable())
   {
     m_nRelayRequestMap = nPattern;
     return MODBUS_EXCEPTION_OK;
@@ -113,7 +113,7 @@ void Relay_Process(void)
 
   // Component #0:  Heceta Module Disabled?
   // If the Heceta Module is disabled, clear the relay request map.
-  if (Configuration_GetModuleDisable())
+  if (!Configuration_GetModuleEnable())
   {
     m_nRelayRequestMap = 0;
   }
@@ -137,7 +137,7 @@ void Relay_Process(void)
 
   // Set the relays.
   // Note that if the module is disabled, the relays will be forcibly set to zero.
-  Relay_Set(Configuration_GetModuleDisable() ? 0 : nResult);
+  Relay_Set(!Configuration_GetModuleEnable() ? 0 : nResult);
 
   // Component #2:  State Machine Processing
   // Handles the actual verification/write process

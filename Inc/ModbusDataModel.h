@@ -17,7 +17,7 @@
     break;
 
 #define FOREACH_HOLDING_REGISTER(HOLDING_REGISTER) \
-  HOLDING_REGISTER(1100,  "Module Disable",         Configuration_GetModuleDisable,         Configuration_SetModuleDisable) \
+  HOLDING_REGISTER(1100,  "Module Enable",         Configuration_GetModuleEnable,         Configuration_SetModuleEnable) \
   HOLDING_REGISTER(1101,  "Relay States Requested", Relay_Get,                              Relay_Request) \
   HOLDING_REGISTER(1102,  "Relay States Actual",    Relay_Get,                              NULL) \
   HOLDING_REGISTER(1103,  "Relay Fault",            Relay_GetFaulted,                       NULL) \

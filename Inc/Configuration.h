@@ -75,7 +75,7 @@ typedef struct
   uint32_t    nTimeout;
 
   // Whether or not these status overrides are enabled.
-  bool    bModuleDisable;
+  bool    bModuleEnable;
   bool    bRebootRequest;
   bool    bFactoryResetRequest;
   bool    bOverrideEnabled;
@@ -127,8 +127,8 @@ ModbusException_T Configuration_SetRestart(uint16_t nRestart);
 uint16_t          Configuration_GetRestart(void);
 ModbusException_T Configuration_SetFactoryReset(uint16_t nFactoryReset);
 uint16_t          Configuration_GetFactoryReset(void);
-ModbusException_T Configuration_SetModuleDisable(uint16_t nDisabled);
-uint16_t          Configuration_GetModuleDisable(void);
+ModbusException_T Configuration_SetModuleEnable(uint16_t nEnabled);
+uint16_t          Configuration_GetModuleEnable(void);
 uint16_t          Configuration_GetSwitches(void);
 
 #endif/* CONFIGURATION_H_ */
