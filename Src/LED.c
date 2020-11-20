@@ -112,7 +112,7 @@ void LED_Process(void)
 		}
 
 		//	Configure the red LED, based on whether or not the FAULT_MODBUS bit is set.
-		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, Fault_Get(FAULT_MODBUS));
+		HAL_GPIO_WritePin(LED_RED_GPIO_Port, LED_RED_Pin, Fault_GetAll());
 	}
 	#endif
 

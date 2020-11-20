@@ -1237,7 +1237,7 @@ void ModbusSlave_CommunicationFaultProcess()
 		m_nModbusCommunicationTimestamp = uwTick - MODBUS_SLAVE_COMMUNICATION_TIMEOUT_FAULT_MS - 1;
 
 		//	If the module is enabled, we are faulted. Otherwise, just push the time back.
-		bFaulted = true && Configuration_GetModuleEnable();
+		bFaulted = true;
 	}
 
 	Fault_Set(FAULT_MODBUS, bFaulted);

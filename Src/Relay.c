@@ -68,16 +68,8 @@ static uint8_t    m_nFaultCounter = 0;
  */
 ModbusException_T Relay_Request(uint16_t nPattern)
 {
-  if (Configuration_GetModuleEnable())
-  {
-    m_nRelayRequestMap = nPattern;
+	m_nRelayRequestMap = nPattern;
     return MODBUS_EXCEPTION_OK;
-  }
-  else
-  {
-    return MODBUS_EXCEPTION_ILLEGAL_DATA_ADDRESS;
-  }
-
 }
 
 /*
@@ -111,13 +103,6 @@ void Relay_Process(void)
 {
   DRV8860_DataRegister_T    m_aDR_temp[DRV8860_CNT] = {0};
 
-  // Component #0:  Heceta Module Disabled?
-  // If the Heceta Module is disabled, clear the relay request map.
-  if (!Configuration_GetModuleEnable())
-  {
-    m_nRelayRequestMap = 0;
-  }
-
   // Component #1:  DR Contents Building
   // Handles the generation of the DR contents.
   // The DR is generated based on the fault state of the system--
@@ -127,7 +112,7 @@ void Relay_Process(void)
   // Otherwise, the DR simply consists of the relays requested.
   // DR = nRelaysRequested;
 
-  // Are in a fault state AND is the module not disabled?
+  // Are in a fault state?
   // If we are, pull the Fault Register map from the EEPROM.
   bool        bFaulted       = !Fault_OK();
   uint16_t    nRelayFaultMap = bFaulted ? EEPROM_GetFaultRegisterMap() : 0;
@@ -136,8 +121,7 @@ void Relay_Process(void)
   uint16_t    nResult = m_nRelayRequestMap | nRelayFaultMap;
 
   // Set the relays.
-  // Note that if the module is disabled, the relays will be forcibly set to zero.
-  Relay_Set(!Configuration_GetModuleEnable() ? 0 : nResult);
+  Relay_Set(nResult);
 
   // Component #2:  State Machine Processing
   // Handles the actual verification/write process
