@@ -75,7 +75,6 @@ typedef struct
   uint32_t    nTimeout;
 
   // Whether or not these status overrides are enabled.
-  bool    bModuleEnable;
   bool    bRebootRequest;
   bool    bFactoryResetRequest;
   bool    bOverrideEnabled;
