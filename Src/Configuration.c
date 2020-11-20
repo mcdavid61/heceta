@@ -97,7 +97,7 @@ void Configuration_Process(void)
   if (m_sManualOutputConfiguration.bFactoryResetRequest &&
       (uwTick - m_sManualOutputConfiguration.nFactoryResetRequestTimestamp > CONFIGURATION_FACTORY_RESTART_TIMEOUT_MS))
   {
-    EEPROM_SetFaultRegisterMap(0);
+    EEPROM_SetDefaultEEPROMValues();
     m_sManualOutputConfiguration.bFactoryResetRequest = false;
   }
 }
