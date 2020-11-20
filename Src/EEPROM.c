@@ -64,8 +64,7 @@ void EEPROM_Process(void)
         {
           // This is not a good configuration.
           // Wipe the configuration to zero, and prepare for it to be written out.
-          memset(&m_sEEPROMConfiguration, 0, sizeof(m_sEEPROMConfiguration));
-          m_bEEPROMConfigurationDirty = true;
+          EEPROM_SetDefaultEEPROMValues();
         }
         m_eEEPROMState = m_bEEPROMConfigurationDirty ? EEPROM_STATE_WRITE : EEPROM_STATE_IDLE;
       }
@@ -209,3 +208,11 @@ void EEPROM_SetFailsafeRelayEnable(uint16_t nFailsafeRelayEnable)
     EEPROM_MarkConfigurationAsDirty();
   }
 }
+
+void EEPROM_SetDefaultEEPROMValues(void)
+{
+  EEPROM_SetFailsafeRelayEnable(EEPROM_DEFAULT_FAILSAFE_RELAY_ENABLE);
+  EEPROM_SetFaultRegisterMap(EEPROM_DEFAULT_FAULT_REGISTER_MAP);
+}
+
+/*************************** END OF FILE **************************************/
