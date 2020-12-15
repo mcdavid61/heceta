@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<analyzerinfo checksum="3956639341">
-  <FileInfo check="CheckUnusedFunctions">
-    <functiondecl functionName="delay_us" lineNumber="17"/>
-    <functiondecl functionName="delay_ms" lineNumber="25"/>
-    <functiondecl functionName="delay_sec" lineNumber="33"/>
-    <functioncall functionName="for"/>
-  </FileInfo>
-</analyzerinfo>

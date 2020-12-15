@@ -8,15 +8,29 @@
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
-#define PARITY_NONE       (0x00)
-#define PARITY_ODD        (0x01)
-#define PARITY_EVEN       (0x02)
-
-#define START_BITS        (1)
-#define CHARACTER_BITS    (8)
-
 #include "Version.h"
 #include "ModbusSlave.h"
+
+#define PARITY_NONE              (0x00)
+#define PARITY_ODD               (0x01)
+#define PARITY_EVEN              (0x02)
+
+#define START_BITS               (1)
+#define CHARACTER_BITS           (8)
+
+#define BAUD_19200               (19200)
+#define BAUD_9600                (9600)
+
+#define STOPBITS_1               (1)
+#define STOPBITS_2               (2)
+
+#define WORDLENGTH_8             (8)
+#define WORDLENGTH_9             (9)
+
+#define SW_MASK_ADDRESS          (0x07)
+#define SW_MASK_BAUD             (0x80)
+#define SW_MASK_PARITY_ENABLE    (0x20)
+#define SW_MASK_PARITY_MODE      (0x40)
 
 // Static configuration variables
 #define TERM(T)         T "\0"
@@ -48,6 +62,7 @@ typedef struct
   uint16_t    nBaudRate;
   uint8_t     nParity;
   uint8_t     nStopBits;
+  uint8_t     nWordLength;
 
   // Fault relay map
   // Stored as a uint16_t in EEPROM module
@@ -94,6 +109,7 @@ uint16_t          Configuration_IsBaudRate19200();
 uint16_t          Configuration_GetParity(void);
 uint16_t          Configuration_GetStopBits(void);
 uint16_t          Configuration_GetMessageLength(void);
+uint16_t          Configuration_GetWordLength(void);
 
 ModbusException_T Configuration_SetFaultRelayMap(uint16_t nFaultRelayMap);
 uint16_t          Configuration_GetFaultRelayMap();

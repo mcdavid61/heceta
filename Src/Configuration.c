@@ -18,6 +18,7 @@
 ModbusConfiguration_T    m_sModbusConfiguration       = {0};
 ModuleConfiguration_T    m_sManualOutputConfiguration = {0};
 
+uint8_t    addresses[8] = {80, 40, 20, 60, 10, 50, 30, 70};
 /*
    Function:  Configuration_Init()
    Description:
@@ -35,35 +36,42 @@ void Configuration_Init(void)
   uint8_t    nSwitches = ~(Switches_Read());
 
   // Modbus Address
-  uint8_t    nModbusAddress = 0;
-
-  nModbusAddress += !!(nSwitches & SWITCH_BIT(1))   ? (40)      : (0);
-  nModbusAddress += !!(nSwitches & SWITCH_BIT(2))   ? (20)      : (0);
-  nModbusAddress += !!(nSwitches & SWITCH_BIT(3))   ? (10)      : (0);
-  nModbusAddress  =  (nModbusAddress)      ? (nModbusAddress)    : (80);
-
-  m_sModbusConfiguration.nModbusAddress = nModbusAddress;
+  m_sModbusConfiguration.nModbusAddress = addresses[nSwitches & SW_MASK_ADDRESS];
 
   // Baud Rate
-  m_sModbusConfiguration.nBaudRate = !!(nSwitches & SWITCH_BIT(8)) ? 19200 : 9600;
+  m_sModbusConfiguration.nBaudRate = BAUD_9600;
 
-  // Word Format
+  if (nSwitches & SW_MASK_BAUD)
+  {
+    m_sModbusConfiguration.nBaudRate = BAUD_19200;
+  }
 
   // Stop bits
-  m_sModbusConfiguration.nStopBits = 1;
+  m_sModbusConfiguration.nStopBits = STOPBITS_1;
 
-  if (!(nSwitches & SWITCH_BIT(6)) && !!(nSwitches & SWITCH_BIT(7)))
+  if (!(nSwitches & SW_MASK_PARITY_ENABLE) && (nSwitches & SW_MASK_PARITY_MODE))
   {
-    m_sModbusConfiguration.nStopBits = 2;
+    m_sModbusConfiguration.nStopBits = STOPBITS_2;
   }
+
+  // Word Format
+  m_sModbusConfiguration.nWordLength = WORDLENGTH_8;
 
   // Parity
   m_sModbusConfiguration.nParity = PARITY_NONE;
 
-  if (!!(nSwitches & SWITCH_BIT(6)))
+  if (nSwitches & SW_MASK_PARITY_ENABLE)
   {
-    m_sModbusConfiguration.nParity = !!(nSwitches & SWITCH_BIT(7)) ? PARITY_EVEN : PARITY_ODD;
+    m_sModbusConfiguration.nParity = PARITY_ODD;
+
+    if (nSwitches & SW_MASK_PARITY_MODE)
+    {
+      m_sModbusConfiguration.nParity =  PARITY_EVEN;
+    }
+    m_sModbusConfiguration.nWordLength = WORDLENGTH_9;
   }
+
+  return;
 }
 
 /*
@@ -147,6 +155,16 @@ uint16_t Configuration_GetParity(void)
 uint16_t Configuration_GetStopBits(void)
 {
   return m_sModbusConfiguration.nStopBits;
+}
+
+/*
+   Function:  Configuration_GetWordLength()
+   Description:
+    Returns the word length.
+ */
+uint16_t Configuration_GetWordLength(void)
+{
+  return m_sModbusConfiguration.nWordLength;
 }
 
 /*
@@ -413,5 +431,3 @@ uint16_t Configuration_GetFactoryReset(void)
 {
   return m_sManualOutputConfiguration.bFactoryResetRequest;
 }
-
-
