@@ -32,7 +32,12 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "debug.h"
 #include "defines.h"
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -54,7 +59,22 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-UART_HandleTypeDef* Main_Get_UART_Handle(void);
+
+//	Define external variables so that we can see things from outside
+//	the scope of the main.h file.
+extern TIM_HandleTypeDef htim2;
+extern CRC_HandleTypeDef hcrc;
+extern SPI_HandleTypeDef hspi1;
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart3;
+extern ADC_HandleTypeDef hadc1;
+
+#define Main_Get_Modbus_Slave_Timer_Handle() 	(&htim2)
+#define Main_Get_CRC_Handle() 					(&hcrc)
+#define Main_Get_SPI_Handle() 					(&hspi1)
+#define Main_Get_Modbus_UART_Handle() 			(&huart1)
+#define Main_Get_Command_UART_Handle() 			(&huart3)
+#define Main_Get_ADC_Handle() 					(&hadc1)
 
 /* USER CODE END EFP */
 

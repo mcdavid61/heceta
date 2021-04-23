@@ -17,10 +17,17 @@
 #define _RELAY_H_
 
 #include <stdint.h>
+#include <stdbool.h>
+#include "ModbusSlave.h"
 
+#define DRV8860_CNT (2)
+
+ModbusException_T Relay_Request(uint16_t nPattern);
 void Relay_Process(void);
-void Relay_Set_Relay(uint16_t relay);
+uint16_t Relay_Get(void);
 void Relay_Run_Demo();
+void Relay_Set_CommRelay(_Bool state);
+uint16_t Relay_GetFaulted(void);
 
 
 #endif /* _RELAY_H_ */

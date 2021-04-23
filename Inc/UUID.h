@@ -18,4 +18,9 @@
  */
 #define STM32_UUID ((uint32_t *)0x1FFF7590)
 
+
+//*****************************************************************************
+// Function Prototypes
+uint32_t UUID_Get_ID(void);
+
 #endif /* UUID_H_ */

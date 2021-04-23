@@ -19,9 +19,9 @@
 /******************************************************************************
  * Defines
  */
-#define	SOFTWARE_VERSION_MAJOR	0
+#define	SOFTWARE_VERSION_MAJOR	1
 #define	SOFTWARE_VERSION_MINOR	0
-#define	SOFTWARE_VERSION_BUILD	3
+#define	SOFTWARE_VERSION_BUILD	6
 
 
 #endif /* _VERSION_H_ */
