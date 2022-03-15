@@ -1,0 +1,9 @@
+Fault.c:42:6:Fault_Activate	0	static
+Fault.c:51:6:Fault_Clear	0	static
+Fault.c:25:6:Fault_Set	8	static
+Fault.c:56:6:Fault_Get	0	static
+Fault.c:60:10:Fault_GetAll	0	static
+Fault.c:70:6:Fault_OK	0	static
+Fault.c:74:10:Fault_NotOK	0	static
+Fault.c:104:6:Fault_CRC_Process	8	static
+Fault.c:179:6:Fault_CRC_StartupTasksComplete	0	static

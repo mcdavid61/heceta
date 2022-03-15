@@ -1,0 +1,2 @@
+Debug.c:14:10:Debug_Write	4	static
+Debug.c:30:6:DEBUG_GPIO_INIT	0	static

@@ -1,0 +1,3 @@
+RAMIntegrity.c:43:6:RAMIntegrity_Run	20	static
+RAMIntegrity.c:137:6:RAMIntegrity_Process	16	static
+RAMIntegrity.c:179:6:RAMIntegrity_StartupTasksComplete	0	static

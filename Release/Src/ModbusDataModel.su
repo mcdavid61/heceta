@@ -1,0 +1,10 @@
+ModbusDataModel.c:41:6:ModbusDataModel_WritePollingValue	0	static
+ModbusDataModel.c:45:10:ModbusDataModel_ReturnResetState_uint16_t	0	static
+ModbusDataModel.c:49:6:ModbusDataModel_ReturnResetState	0	static
+ModbusDataModel.c:53:6:ModbusDataModel_ReturnSetState	0	static
+ModbusDataModel.c:65:6:ModbusDataModel_ReadCoil	0	static
+ModbusDataModel.c:113:19:ModbusDataModel_ReadHoldingRegister	8	static
+ModbusDataModel.c:172:19:ModbusDataModel_WriteHoldingRegister	8	static
+ModbusDataModel.c:225:19:ModbusDataModel_ReadInputRegister	8	static
+ModbusDataModel.c:284:6:ModbusDataModel_ReadObjectIDHelper_Str	24	static
+ModbusDataModel.c:327:19:ModbusDataModel_ReadObjectID	16	static

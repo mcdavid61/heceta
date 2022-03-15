@@ -1,0 +1,4 @@
+LED.c:45:6:LED_CommunicationUpdate	0	static
+LED.c:51:6:LED_Process	8	static
+LED.c:135:6:LED_Startup_Process	16	static
+LED.c:184:6:LED_StartupTasksComplete	0	static

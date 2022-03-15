@@ -1,0 +1,6 @@
+Relay.c:69:19:Relay_Request	0	static
+Relay.c:102:6:Relay_Process	16	static
+Relay.c:216:6:Relay_Run_Demo	0	static
+Relay.c:222:10:Relay_Get	0	static
+Relay.c:227:10:Relay_GetFaulted	0	static
+Relay.c:232:6:Relay_Set_CommRelay	0	static

@@ -1,0 +1,9 @@
+ADC.c:35:6:ADC_Process	32	static
+ADC.c:160:10:ADC_Get_Supply_Voltage	0	static
+ADC.c:165:10:ADC_Get_3V3_Voltage	0	static
+ADC.c:170:10:ADC_Get_VrefInt_Voltage	0	static
+ADC.c:175:10:ADC_Get_Temperature	0	static
+ADC.c:185:6:ADC_StartupTasksComplete	0	static
+ADC.c:197:6:HAL_ADC_ConvCpltCallback	0	static
+ADC.c:207:6:HAL_ADC_ConvHalfCpltCallback	0	static
+ADC.c:218:6:HAL_ADC_ErrorCallback	8	static

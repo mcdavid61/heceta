@@ -1,0 +1,5 @@
+DRV8860.c:19:6:DRV8860_SpecialCommandPulse	32	static
+DRV8860.c:101:6:DRV8860_DataRegisterWrite	32	static
+DRV8860.c:157:6:DRV8860_ControlRegisterWrite	32	static
+DRV8860.c:220:6:DRV8860_ControlRegisterRead	32	static
+DRV8860.c:266:6:DRV8860_DataRegisterRead	32	static

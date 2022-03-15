@@ -1,0 +1,8 @@
+EEPROM.c:148:6:EEPROM_MarkConfigurationAsDirty	0	static
+EEPROM.c:158:6:EEPROM_Ready	0	static
+EEPROM.c:168:10:EEPROM_GetFaultRegisterMap	0	static
+EEPROM.c:178:6:EEPROM_SetFaultRegisterMap	0	static
+EEPROM.c:193:10:EEPROM_GetFailsafeRelayEnable	0	static
+EEPROM.c:203:6:EEPROM_SetFailsafeRelayEnable	0	static
+EEPROM.c:212:6:EEPROM_SetDefaultEEPROMValues	8	static
+EEPROM.c:41:6:EEPROM_Process	8	static

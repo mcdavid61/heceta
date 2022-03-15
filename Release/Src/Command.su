@@ -1,0 +1,8 @@
+Command.c:426:6:Command_UART_RxISR_8BIT	16	static
+Command.c:53:6:Command_Has_Comm_Timed_Out	0	static
+Command.c:284:6:Command_UART_ErrorCallback	0	static
+Command.c:300:6:Command_CollectRS232Input	48	static
+Command.c:414:6:Command_ClearInputBuffer	8	static
+Command.c:466:19:Command_UART_Receive_IT	0	static
+Command.c:74:6:Command_PrepareForInput	8	static
+Command.c:115:6:Command_Process	64	static

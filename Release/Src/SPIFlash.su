@@ -1,0 +1,17 @@
+SPIFlash.c:77:6:SPIStep_ReadStatusRegisterCommand	0	static
+SPIFlash.c:89:6:SPIStep_WriteEnable	0	static
+SPIFlash.c:104:6:SPIStep_Write	4	static
+SPIFlash.c:122:6:SPIStep_Read	0	static
+SPIFlash.c:139:6:SPIStep_Command	0	static
+SPIFlash.c:149:6:SPIStep_CommandAddress	4	static
+SPIFlash.c:165:6:SPIStep_ReadStatusRegister	0	static
+SPIFlash.c:227:6:SPIFlash_WriteHelper	16	static
+SPIFlash.c:194:6:SPIFlash_IsFree	0	static
+SPIFlash.c:283:6:SPIFlash_Write	24	static
+SPIFlash.c:318:6:SPIFlash_Read	24	static
+SPIFlash.c:351:6:SPIFlash_OperationCompleteCallback	8	static
+SPIFlash.c:448:6:SPIFlash_Callback	8	static
+SPIFlash.c:467:6:HAL_SPI_TxCpltCallback	8	static
+SPIFlash.c:471:6:HAL_SPI_RxCpltCallback	8	static
+SPIFlash.c:475:6:HAL_SPI_TxRxCpltCallback	8	static
+SPIFlash.c:487:6:SPIFlash_Process	8	static
